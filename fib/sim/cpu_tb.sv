@@ -42,7 +42,7 @@ module cpu_tb();
         #2
         rstn = 1;
 
-        #((CYCLE)*10)
+        #((CYCLE)*20)
 
         $finish();
     end

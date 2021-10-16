@@ -47,8 +47,12 @@ module single_cycle_control(
     parameter CALC   = 7'b0110011;
 
     // funct3
-    parameter ADD = 3'b000;
+    parameter ADDSUB = 3'b000;
     parameter SLT = 3'b010;
+
+    // funct7 
+    parameter ADD = 7'b0000000;
+    parameter SUB = 7'b0100000;
 
     logic [9:0] controls;
     assign { memtoreg
@@ -104,11 +108,12 @@ module single_cycle_control(
             BRANCH : controls = 10'b00_0_01_01_0_0_0;
             LOAD   : controls = 10'b01_0_00_00_0_1_1;
             STORE  : controls = 10'b00_1_00_00_0_1_0;
-            CALCI  : controls = funct3 == ADD ? 10'b00_0_00_00_0_1_1:
+            CALCI  : controls = funct3 == ADDSUB ? 10'b00_0_00_00_0_1_1:
                                 funct3 == SLT ? 10'b00_0_00_10_0_1_1:
                                 10'b0;
-            CALC   : controls = funct3 == ADD ? 10'b00_0_00_00_0_0_1:
-                                funct3 == SLT ? 10'b00_0_00_10_0_0_1:
+            CALC   : controls = funct3 == SLT ? 10'b00_0_00_10_0_0_1:
+                                funct7 == ADD ? 10'b00_0_00_00_0_0_1:
+                                funct7 == SUB ? 10'b00_0_00_01_0_0_1:
                                 10'b0;
             default: controls = 10'b0;
         endcase
