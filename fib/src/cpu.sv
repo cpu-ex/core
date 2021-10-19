@@ -122,7 +122,7 @@ module cpu(
     logic [31:0] memrdata; //sign extend?
     ram_distributed dmem(.clk(clk),
                          .we(memwrite),
-                         .addr(aluresult),
+                         .addr(aluresult[11:2]), // lw, sw
                          .di(rdata1),
                          .dout(memrdata));
     // todo D-memory
