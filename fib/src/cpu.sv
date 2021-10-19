@@ -22,11 +22,11 @@
 
 module cpu(
     input wire clk,
-    input wire rstn
+    input wire rstn,
+    output logic [31:0] pc_
     );
 
     // pc
-    logic [31:0] pc_;
     logic [31:0] pcnext;
     flop pc(.clk(clk), .rstn(rstn), .data(pcnext), .q(pc_));
 
@@ -48,7 +48,7 @@ module cpu(
 
     ram_distributed imem(.clk(clk),
                          .we(1'b0),
-                         .addr(pc_[9:0]),
+                         .addr(pc_[11:2]), // pc[1:0] == 2'b00
                          .di(32'b0),
                          .dout(instr));
 
