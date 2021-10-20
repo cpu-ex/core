@@ -45,6 +45,7 @@ module single_cycle_control(
     parameter STORE  = 7'b0100011;
     parameter CALCI  = 7'b0010011;
     parameter CALC   = 7'b0110011;
+    parameter IO     = 7'b0000000;
 
     // funct3
     parameter ADDSUB = 3'b000;
@@ -115,6 +116,7 @@ module single_cycle_control(
                                 funct7 == ADD ? 10'b00_0_00_00_0_0_1:
                                 funct7 == SUB ? 10'b00_0_00_01_0_0_1:
                                 10'b0;
+            IO     : controls = 10'b01_0_00_00_0_1_0;
             default: controls = 10'b0;
         endcase
     end

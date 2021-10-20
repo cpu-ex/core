@@ -35,6 +35,7 @@ module immgen(
     parameter STORE  = 7'b0100011;
     parameter CALCI  = 7'b0010011;
     parameter CALC   = 7'b0110011;
+    parameter IO     = 7'b0000000;
 
     wire [31:0] imm_i, imm_s, imm_b, imm_u, imm_j;
     assign imm_i = {{20{instr[31]}}, instr[31:20]};
@@ -54,6 +55,7 @@ module immgen(
             STORE  : imm = imm_s;
             CALCI  : imm = imm_i;
             CALC   : imm = 32'b0;
+            IO     : imm = imm_i;
             default: imm = 32'b0;
         endcase
     end

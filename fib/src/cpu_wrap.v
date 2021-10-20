@@ -23,11 +23,13 @@
 module cpu_wrap(
     input wire clk,
     input wire rstn,
-    output wire [31:0] pc_
+    output wire [31:0] pc_,
+    output wire [31:0] data
     );
     
     cpu cpu(.clk(clk),
             .rstn(rstn),
-            .pc_(pc_));
+            .pc_(pc_),
+            .output_data(data));
 
 endmodule

@@ -23,16 +23,13 @@
 module cpu(
     input wire clk,
     input wire rstn,
-    output logic [31:0] pc_
+    output logic [31:0] pc_,
+    output logic [31:0] output_data
     );
 
     // pc
     logic [31:0] pcnext;
     flop pc(.clk(clk), .rstn(rstn), .data(pcnext), .q(pc_));
-
-    initial begin
-        pc_ = 32'b0;
-    end
 
     logic [31:0] instr; // todo I-Memory
     logic [6:0] funct7;
@@ -46,11 +43,11 @@ module cpu(
     assign rs1 = instr[24:20];
     assign rd = instr[11:7];
 
-    ram_distributed imem(.clk(clk),
-                         .we(1'b0),
-                         .addr(pc_[11:2]), // pc[1:0] == 2'b00
-                         .di(32'b0),
-                         .dout(instr));
+    ram_distributed_inst imem(.clk(clk),
+                              .we(1'b0),
+                              .addr(pc_[11:2]), // pc[1:0] == 2'b00
+                              .di(32'b0),
+                              .dout(instr));
 
     logic [31:0] imm;
     immgen immgen(.instr(instr),
@@ -90,8 +87,7 @@ module cpu(
                            .wdata(regwdata),
                            .rdata0(rdata0),
                            .rdata1(rdata1));
-
-    
+        
     logic [31:0] src0;
     logic [31:0] src1;
     mux2 src0mux2(.data0(rdata0),
@@ -137,4 +133,12 @@ module cpu(
                       .s(memtoreg),
                       .data(regwdata));
 
+    assign output_data_en = opcode == 7'b0; // OUT
+    flope out_data(.clk(clk),
+                   .rstn(rstn),
+                   .en(output_data_en),
+                   .data(regwdata),
+                   .q(output_data));
+    // (debug(?uart?) led output)
+    
 endmodule

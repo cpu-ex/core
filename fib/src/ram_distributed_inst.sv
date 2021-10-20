@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2021/10/15 13:04:26
+// Create Date: 2021/10/20 20:34:41
 // Design Name: 
-// Module Name: ram_distributed
+// Module Name: ram_distributed_inst
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module ram_distributed(
+module ram_distributed_inst(
     input clk,
     input we,
     input [9:0] addr,
@@ -31,7 +31,7 @@ module ram_distributed(
     (* ram_style = "distributed" *) reg [31:0] ram [1023:0];
 
     initial begin
-        $readmemb("fib_datamem.mem",ram);
+        $readmemb("fib_instmem.mem",ram);
     end
 
     always @(posedge clk) begin
