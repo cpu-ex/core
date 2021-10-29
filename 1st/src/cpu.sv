@@ -77,15 +77,17 @@ module cpu(
     logic [31:0] result; // apuresult or fpuresult
 
     // dmem
-    logic [31:0] memwdata, memrdata;
+    logic [31:0] memwdata, memrdata_word, memrdata_byte, memrdata;
+    // assign memrdata_byte = {24'b0,memrdata_word[7:0]}; // little endian
+    assign memrdata_byte = {24'b0,memrdata_word[31:24]}; // big endian
 
     // uart_rx
     logic [31:0] indata;
     assign indata = {24'b0,uart_rx_data};
 
     // uart_tx
-    // assign uart_tx_data = memrdata[7:0]; // little endian
-    assign uart_tx_data = memrdata[31:24]; // big endian
+    // assign uart_tx_data = memrdata_word[7:0]; // little endian
+    assign uart_tx_data = memrdata_word[31:24]; // big endian
 
     // pc
     flop pc_(.clk(clk),
@@ -206,12 +208,17 @@ module cpu(
                          .addr(aluresult[9:0]),
                          .wordorbyte(wordorbyte),
                          .di(memwdata),
-                         .dout(memrdata));
+                         .dout(memrdata_word));
 
     mux2 resultmux2(.data0(aluresult),
                     .data1(fpuresult),
                     .s(aluorfpu),
                     .data(result));
+
+    mux2 memrdatamux2(.data0(memrdata_word),
+                      .data1(memrdata_byte),
+                      .s(wordorbyte),
+                      .data(memrdata));
     
     mux4 regwdatamux4(.data0(result),
                       .data1(memrdata),
