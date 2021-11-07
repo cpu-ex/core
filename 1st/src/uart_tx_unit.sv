@@ -22,6 +22,7 @@
 
 module uart_tx_unit #(CLK_PER_HALF_BIT = 5208)(
                       input wire clk,
+                      input wire clk_uart,
                       input wire rstn,
                       output wire txd,
                       input wire wr_en,
@@ -37,26 +38,40 @@ module uart_tx_unit #(CLK_PER_HALF_BIT = 5208)(
                                    .tx_start(tx_start),
                                    .tx_busy(tx_busy),
                                    .txd(txd),
-                                   .clk(clk),
+                                   .clk(clk_uart),
                                    .rstn(rstn));
     
     logic rd_en, empty;
 
     // fifo generator (ip core)
-    fifo_generator_0 fifo(
-        .clk(clk),            // input wire clk
-        .rst(~rstn),          // input wire rst
-        .din(din),            // input wire [7 : 0] din
-        .wr_en(wr_en),        // input wire wr_en
-        .rd_en(rd_en),        // input wire rd_en
-        .dout(sdata),         // output wire [7 : 0] dout
-        .full(full),          // output wire full
-        .empty(empty)         // output wire empty
-    );   
+    // fifo_generator_0 fifo(
+    //     .clk(clk),            // input wire clk
+    //     .rst(~rstn),          // input wire rst
+    //     .din(din),            // input wire [7 : 0] din
+    //     .wr_en(wr_en),        // input wire wr_en
+    //     .rd_en(rd_en),        // input wire rd_en
+    //     .dout(sdata),         // output wire [7 : 0] dout
+    //     .full(full),          // output wire full
+    //     .empty(empty)         // output wire empty
+    // );   
+
+    // fifo generator (ip core)
+    fifo_generator_3 fifo (
+        .rst(~rstn),       // input wire rst
+        .wr_clk(clk),      // input wire wr_clk
+        .rd_clk(clk_uart), // input wire rd_clk
+        .din(din),         // input wire [7 : 0] din
+        .wr_en(wr_en),     // input wire wr_en
+        .rd_en(rd_en),     // input wire rd_en
+        .dout(sdata),      // output wire [7 : 0] dout
+        .full(full),       // output wire full
+        .empty(empty)      // output wire empty
+    );
+
 
     logic [1:0] status_read;
 
-    always @(posedge clk) begin
+    always @(posedge clk_uart) begin
         if (~rstn) begin
             rd_en <= 0;
             tx_start <= 0;

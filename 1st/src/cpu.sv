@@ -98,7 +98,8 @@ module cpu(
     // imem
     ram_distributed imem(.clk(clk), 
                          .we(imemwrite), 
-                         .addr(pc[9:0]),  
+                         .raddr(pc[9:0]),
+                         .waddr(aluresult[9:0]),  
                          .wordorbyte(wordorbyte), 
                          .di(indata),
                          .dout(instr));
@@ -188,8 +189,9 @@ module cpu(
     // next pc
     assign pc4 = pc + 32'b100; 
     assign pcimm = pc + imm; 
+    wire flag_ = opcode == 7'b0 ? empty : flag; 
     pc_control pc_control(.branchjump(branchjump),
-                          .flag(flag),
+                          .flag(flag_),
                           .pc4(pc4),
                           .pcimm(pcimm),
                           .aluresult(aluresult),
@@ -205,7 +207,8 @@ module cpu(
     // dmem
     ram_distributed dmem(.clk(clk),
                          .we(memwrite),
-                         .addr(aluresult[9:0]),
+                         .raddr(aluresult[9:0]),
+                         .waddr(aluresult[9:0]),
                          .wordorbyte(wordorbyte),
                          .di(memwdata),
                          .dout(memrdata_word));

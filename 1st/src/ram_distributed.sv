@@ -26,23 +26,25 @@
 module ram_distributed(
     input clk,
     input we,
-    input [9:0] addr,
+    input [9:0] raddr,
+    input [9:0] waddr,
     input wordorbyte,
     input [31:0] di,
     output[31:0] dout 
     );
 
-    (* ram_style = "distributed" *) reg [7:0] ram [1023:0];
+    //(* ram_style = "distributed" *) reg [7:0] ram [1023:0];
+    (* ram_style = "distributed" *) reg [7:0] ram [1030:0];
 
     always @(posedge clk) begin
         if (we) begin
             if (wordorbyte) begin
-                ram[addr] <= di[7:0];
+                ram[waddr] <= di[7:0];
             end else begin
-                {ram[addr], ram[addr+1], ram[addr+2], ram[addr+3]} <= di; // big endian
+                {ram[waddr], ram[waddr+1], ram[waddr+2], ram[waddr+3]} <= di; // big endian
             end
         end
     end
 
-    assign dout = {ram[addr], ram[addr+1], ram[addr+2], ram[addr+3]};
+    assign dout = {ram[raddr], ram[raddr+1], ram[raddr+2], ram[raddr+3]};
 endmodule

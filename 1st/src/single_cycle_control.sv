@@ -81,6 +81,7 @@ module single_cycle_control(
     localparam OUT = 3'b000;
     localparam IND = 3'b001;
     localparam INI = 3'b010;
+    localparam INWAIT = 3'b011;
 
     // funct7 
     localparam ADD = 7'b0000000;
@@ -291,6 +292,7 @@ module single_cycle_control(
             IO     : controls = funct3 == OUT ? 25'b01_0_0_00_0000_0000_0_1_0_0_0_00_0_1_0_1:
                                 funct3 == IND ? 25'b00_1_0_00_0000_0000_0_1_0_0_0_10_0_0_1_1:
                                 funct3 == INI ? 25'b00_0_1_00_0000_0000_0_1_0_0_0_00_0_0_1_1:
+                                funct3 == INWAIT ? 25'b00_0_0_01_0000_0000_0_0_0_0_0_00_0_0_0_0:
                                 25'b0;  
             default: controls = 25'b0;   
         endcase

@@ -20,8 +20,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module top(
+module top #(CLK_PER_HALF_BIT = 5208)(
     input wire clk,
+    input wire clk_uart,
     input wire rstn,
     input rxd,
     output txd
@@ -39,18 +40,20 @@ module top(
             .full(full),
             .uart_wr_en(wr_en));
 
-    uart_tx_unit tx_unit(.clk(clk),
-                         .rstn(rstn),
-                         .txd(txd),
-                         .wr_en(wr_en),
-                         .din(tdata),
-                         .full(full));
+    uart_tx_unit #(CLK_PER_HALF_BIT)tx_unit(.clk(clk),
+                                            .clk_uart(clk_uart),
+                                            .rstn(rstn),
+                                            .txd(txd),
+                                            .wr_en(wr_en),
+                                            .din(tdata),
+                                            .full(full));
 
-    uart_rx_unit rx_unit(.clk(clk),
-                         .rstn(rstn),
-                         .rxd(rxd),
-                         .rd_en(rd_en),
-                         .dout(rdata),
-                         .empty(empty));
+    uart_rx_unit #(CLK_PER_HALF_BIT)rx_unit(.clk(clk),
+                                            .clk_uart(clk_uart),
+                                            .rstn(rstn),
+                                            .rxd(rxd),
+                                            .rd_en(rd_en),
+                                            .dout(rdata),
+                                            .empty(empty));
 
 endmodule
