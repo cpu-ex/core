@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module top #(CLK_PER_HALF_BIT = 5208)(
+module top #(CLK_PER_HALF_BIT = 86)(
     input wire clk,
     input wire clk_uart,
     input wire rstn,

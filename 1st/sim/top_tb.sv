@@ -22,8 +22,10 @@
 
 // HALF_TMCLK_UART corresponds to 100 MHz system clock
 // HALF_TMCLK_UART = 10^9 / (100M) / 2
+
 // HALF_TMCLK corresponds to 20 MHz system clock
 // HALF_TMCLK = 10^9 / (20M) / 2
+
 // TMBIT and CLK_PER_HALF_BIT corresponds to 576000 bps
 // TMBIT = 10^9 / baud rate
 // CLK_PER_HALF_BIT = 100M / baud rate / 2
@@ -37,7 +39,7 @@ module top_tb();
 
     logic clk, clk_uart, rstn, rxd, txd;
     logic [7:0] prog [200:0];
-    logic [31:0] program_size = 32'd128;
+    logic [31:0] program_size = 32'd160;
 
     int i;
 
@@ -76,7 +78,6 @@ module top_tb();
         rstn = 0;
         rxd = 1;
 
-        $readmemb("bootloader.mem",top.cpu.imem.ram);
         $readmemb("data_mem.mem",top.cpu.dmem.ram);
         $readmemb("inst_mem.mem",prog);
 

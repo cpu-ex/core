@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module uart_rx_unit #(CLK_PER_HALF_BIT = 5208) (
+module uart_rx_unit #(CLK_PER_HALF_BIT = 86) (
                       input wire clk,
                       input wire clk_uart,
                       input wire rstn,
@@ -42,19 +42,6 @@ module uart_rx_unit #(CLK_PER_HALF_BIT = 5208) (
                                    .rxd(rxd));
     
     logic full;
-
-    // // fifo generator (ip core)
-    // // First Word Fall Through
-    // fifo_generator_1 fifo(
-    //     .clk(clk),            // input wire clk
-    //     .rst(~rstn),          // input wire rst
-    //     .din(rdata),          // input wire [7 : 0] din
-    //     .wr_en(rdata_ready),  // input wire wr_en
-    //     .rd_en(rd_en),        // input wire rd_en
-    //     .dout(dout),          // output wire [7 : 0] dout
-    //     .full(full),          // output wire full
-    //     .empty(empty)         // output wire empty
-    // );  
 
     // fifo generator (ip core)
     // First Word Fall Through

@@ -19,32 +19,49 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-// wordorbyte
-// 1'b0 -> word
-// 1'b1 -> byte
-
-module ram_distributed(
+// data memory
+module ram_distributed_data(
     input clk,
     input we,
     input [9:0] raddr,
     input [9:0] waddr,
-    input wordorbyte,
     input [31:0] di,
     output[31:0] dout 
     );
 
-    //(* ram_style = "distributed" *) reg [7:0] ram [1023:0];
-    (* ram_style = "distributed" *) reg [7:0] ram [1030:0];
+    (* ram_style = "distributed" *) reg [31:0] ram [1023:0];
 
     always @(posedge clk) begin
         if (we) begin
-            if (wordorbyte) begin
-                ram[waddr] <= di[7:0];
-            end else begin
-                {ram[waddr], ram[waddr+1], ram[waddr+2], ram[waddr+3]} <= di; // big endian
-            end
+            ram[waddr] <= di;
         end
     end
 
-    assign dout = {ram[raddr], ram[raddr+1], ram[raddr+2], ram[raddr+3]};
+    assign dout = ram[raddr];
+endmodule
+
+
+// instr memory
+module ram_distributed_inst(
+    input clk,
+    input we,
+    input [9:0] raddr,
+    input [9:0] waddr,
+    input [31:0] di,
+    output[31:0] dout 
+    );
+
+    (* ram_style = "distributed" *) reg [31:0] ram [1023:0];
+
+    initial begin
+        $readmemb("bootloader.mem",ram);
+    end
+
+    always @(posedge clk) begin
+        if (we) begin
+            ram[waddr] <= di;
+        end
+    end
+
+    assign dout = ram[raddr];
 endmodule

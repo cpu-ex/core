@@ -38,7 +38,6 @@ module immgen(
     localparam FLOAD  = 7'b0000111; 
     localparam FSTORE = 7'b0100111; 
     localparam F      = 7'b1010011;  
-    localparam IO     = 7'b0000000; 
 
     wire [31:0] imm_i, imm_s, imm_b, imm_u, imm_j;
     assign imm_i = {{20{instr[31]}}, instr[31:20]};
@@ -61,7 +60,6 @@ module immgen(
             FLOAD  : imm = imm_i;
             FSTORE : imm = imm_s;
             F      : imm = 32'b0;
-            IO     : imm = imm_i;
             default: imm = 32'b0;
         endcase
     end

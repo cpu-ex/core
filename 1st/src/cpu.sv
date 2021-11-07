@@ -45,6 +45,7 @@ module cpu(
     // control signal
     logic [1:0] memtoreg;
     logic memwrite;
+    logic memread;
     logic imemwrite;
     logic [1:0] branchjump;
     logic [3:0] aluop;
@@ -54,7 +55,6 @@ module cpu(
     logic fpusrc0;
     logic regwrite;
     logic fregwrite;
-    logic [1:0] tomem;
     logic aluorfpu;
     logic wordorbyte;
 
@@ -76,18 +76,17 @@ module cpu(
     logic [31:0] fsrc0, fpuresult;
     logic [31:0] result; // apuresult or fpuresult
 
-    // dmem
-    logic [31:0] memwdata, memrdata_word, memrdata_byte, memrdata;
-    // assign memrdata_byte = {24'b0,memrdata_word[7:0]}; // little endian
-    assign memrdata_byte = {24'b0,memrdata_word[31:24]}; // big endian
-
-    // uart_rx
-    logic [31:0] indata;
-    assign indata = {24'b0,uart_rx_data};
-
-    // uart_tx
-    // assign uart_tx_data = memrdata_word[7:0]; // little endian
-    assign uart_tx_data = memrdata_word[31:24]; // big endian
+     // data memory && MMIO(uart)
+     logic [31:0] memwdata, memrdata_word, memrdata_byte, memrdata, memdata;
+     assign memrdata_byte = {{24{memrdata_word[31]}},memrdata_word[31:24]}; // big endian
+     // assign memrdata_byte = {{24{memrdata_word[7]}},memrdata_word[7:0]}; // little endian
+     assign memdata = aluresult[9:0] == 10'b0000000000 ? {24'b0,uart_rx_data}:
+                      aluresult[9:0] == 10'b0000000100 ? {31'b0,~empty}:
+                      aluresult[9:0] == 10'b0000001000 ? {31'b0,~full}:
+                      memrdata;
+     assign uart_rd_en = memread && aluresult[9:0] == 10'b0000000000;
+     assign uart_wr_en = memwrite && aluresult[9:0] == 10'b0000001100;
+     assign uart_tx_data = memwdata[7:0];
 
     // pc
     flop pc_(.clk(clk),
@@ -96,13 +95,13 @@ module cpu(
              .q(pc));
 
     // imem
-    ram_distributed imem(.clk(clk), 
-                         .we(imemwrite), 
-                         .raddr(pc[9:0]),
-                         .waddr(aluresult[9:0]),  
-                         .wordorbyte(wordorbyte), 
-                         .di(indata),
-                         .dout(instr));
+    // only execute store word
+    ram_distributed_inst imem(.clk(clk), 
+                              .we(imemwrite), 
+                              .raddr(pc[11:2]),
+                              .waddr(aluresult[11:2]),  
+                              .di(memwdata),
+                              .dout(instr));
     
     assign opcode = instr[6:0];
     assign funct3 = instr[14:12];
@@ -117,6 +116,7 @@ module cpu(
                                    .funct7(funct7),
                                    .memtoreg(memtoreg),
                                    .memwrite(memwrite),
+                                   .memread(memread),
                                    .imemwrite(imemwrite),
                                    .branchjump(branchjump),
                                    .aluop(aluop),
@@ -126,10 +126,7 @@ module cpu(
                                    .fpusrc0(fpusrc0),
                                    .regwrite(regwrite),
                                    .fregwrite(fregwrite),
-                                   .tomem(tomem),
                                    .aluorfpu(aluorfpu),
-                                   .uart_wr_en(uart_wr_en),
-                                   .uart_rd_en(uart_rd_en),
                                    .wordorbyte(wordorbyte));
 
     // imm
@@ -189,29 +186,25 @@ module cpu(
     // next pc
     assign pc4 = pc + 32'b100; 
     assign pcimm = pc + imm; 
-    wire flag_ = opcode == 7'b0 ? empty : flag; 
     pc_control pc_control(.branchjump(branchjump),
-                          .flag(flag_),
+                          .flag(flag),
                           .pc4(pc4),
                           .pcimm(pcimm),
                           .aluresult(aluresult),
                           .pcnext(pcnext));
     
-    mux4 memwdatamux4(.data0(rdata1),
+    mux2 memwdatamux2(.data0(rdata1),
                       .data1(frdata1),
-                      .data2(indata),
-                      .data3(32'b0),
-                      .s(tomem),
+                      .s(aluorfpu),
                       .data(memwdata));
 
     // dmem
-    ram_distributed dmem(.clk(clk),
-                         .we(memwrite),
-                         .raddr(aluresult[9:0]),
-                         .waddr(aluresult[9:0]),
-                         .wordorbyte(wordorbyte),
-                         .di(memwdata),
-                         .dout(memrdata_word));
+    ram_distributed_data dmem(.clk(clk),
+                              .we(memwrite),
+                              .raddr(aluresult[11:2]),
+                              .waddr(aluresult[11:2]),
+                              .di(memwdata),
+                              .dout(memrdata_word));
 
     mux2 resultmux2(.data0(aluresult),
                     .data1(fpuresult),
@@ -224,7 +217,7 @@ module cpu(
                       .data(memrdata));
     
     mux4 regwdatamux4(.data0(result),
-                      .data1(memrdata),
+                      .data1(memdata),
                       .data2(pc4),
                       .data3(pcimm),
                       .s(memtoreg),
