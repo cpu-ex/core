@@ -44,7 +44,7 @@ module uart_tx_unit #(CLK_PER_HALF_BIT = 86)(
     logic rd_en, empty;
 
     // fifo generator (ip core)
-    fifo_generator_3 fifo (
+    fifo_generator_4 fifo (
         .rst(~rstn),       // input wire rst
         .wr_clk(clk),      // input wire wr_clk
         .rd_clk(clk_uart), // input wire rd_clk

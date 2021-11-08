@@ -23,8 +23,8 @@
 // HALF_TMCLK_UART corresponds to 100 MHz system clock
 // HALF_TMCLK_UART = 10^9 / (100M) / 2
 
-// HALF_TMCLK corresponds to 20 MHz system clock
-// HALF_TMCLK = 10^9 / (20M) / 2
+// HALF_TMCLK corresponds to 10 MHz system clock
+// HALF_TMCLK = 10^9 / (10M) / 2
 
 // TMBIT and CLK_PER_HALF_BIT corresponds to 576000 bps
 // TMBIT = 10^9 / baud rate
@@ -34,20 +34,21 @@ module top_tb();
     localparam TMBIT = 1736;
     localparam TMINTVL = TMBIT*5;
     localparam HALF_TMCLK_UART = 5;
-    localparam HALF_TMCLK = 25;
+    localparam HALF_TMCLK = 50;
     localparam CLK_PER_HALF_BIT = 86;
 
     logic clk, clk_uart, rstn, rxd, txd;
-    logic [7:0] prog [200:0];
-    logic [31:0] program_size = 32'd160;
+    logic [7:0] prog [2000:0];
+    logic [31:0] program_size;
+    assign program_size = {30'd7,2'b00};
 
     int i;
 
-    top #(CLK_PER_HALF_BIT) top(.clk(clk),
-                                .rstn(rstn),
-                                .clk_uart(clk_uart),
-                                .rxd(rxd),
-                                .txd(txd));
+    top_wrap #(CLK_PER_HALF_BIT) top_wrap(.clk(clk),
+                                          .rstn(rstn),
+                                          .clk_uart(clk_uart),
+                                          .rxd(rxd),
+                                          .txd(txd));
 
     task uart(input logic [7:0] data);
         begin
@@ -78,7 +79,7 @@ module top_tb();
         rstn = 0;
         rxd = 1;
 
-        $readmemb("data_mem.mem",top.cpu.dmem.ram);
+        $readmemb("data_mem.mem",top_wrap.top.cpu.dmem.ram);
         $readmemb("inst_mem.mem",prog);
 
         #(HALF_TMCLK*100);

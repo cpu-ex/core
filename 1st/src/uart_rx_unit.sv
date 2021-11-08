@@ -45,7 +45,7 @@ module uart_rx_unit #(CLK_PER_HALF_BIT = 86) (
 
     // fifo generator (ip core)
     // First Word Fall Through
-    fifo_generator_2 fifo (
+    fifo_generator_5 fifo (
         .rst(~rstn),          // input wire rst
         .wr_clk(clk_uart),    // input wire wr_clk
         .rd_clk(clk),         // input wire rd_clk
