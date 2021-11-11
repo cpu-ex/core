@@ -1,15 +1,8 @@
 # core
-なんか頭の中がごちゃごちゃになってきたので整理のために1st完動までのtodoを整理します。
 
 ## 1st完動までのtodo
-
-+ 目標としてはシングルサイクルで正常に動くコアを作る。(core ~~20Mhz~~10Mhz, uart 100Mhzでその間はasync fifoでつなぐ。mulやdivがあると10Mhzでも動きませんでした。)
-+ 命令はすべて実装した。
-+ uartの入出力はいまはin,out命令で行っているがなんか気に入らないのでMMIOにしたい、それに合わせてレジスタから命令メモリに書き込む命令SWI(store word instruction)を付け足す。(done)
-+ bootloaderをそれに合わせて書き直す。(done)
-+ シュミレーションでテストする。このテストはフィボナッチのプログラムでやる。(done)
-+ 全命令のテスト(done)
-+ pyserialでPCからのシリアル通信を実装して、実機でもテストする。これもフィボナッチ(done)
++ 目標としてはシングルサイクルで正常に動くコアを作る。(core 10Mhz, uart 100Mhz)
++ マルチサイクルまたはパイプラインにする可能性があります。
 + DRAMのメモリと合流
 + FPUと合流
 + 完動?
@@ -18,19 +11,31 @@
 + パイプラインにする。
 + ??
 
-## MMIO
-とりあえず今のところの実装では
-+ 0x00000000: uart_in
-+ 0x00000004: uart_in_valid
-+ 0x00000008: uart_out_valid
-+ 0x0000000c: uart_out
-になってます。(1st/src/cpu.sv l79~l89参照)
- 
-## bootloaderの実装
-0x00000000からbootloaderが置かれていて、loadし終わると
-0x00000100にjumpして実行を開始します。
-(dataとinstrを同じメモリ空間に置くならuartかbootloaderの置く位置を変える。)
+## 仕様
+### Memory
++ Big endian
 
+Data Memory(2^26 byte)
++ 0x0000000からstatic data,heap,stack,MMIOが割り当てられる。
+
+MMIO
++ 0x3FFFFF4: uart_in
++ 0x3FFFFF8: uart_in_valid
++ 0x3FFFFFC: uart_out_valid
++ 0x3FFFFFF: uart_out
+
+Instruction Memory
++ Data Memoryとは別のメモリ空間
++ サイズはまだ決まってない。
+
+### Instruction
+RISC-VのRV32IFの一部と命令メモリに書き込むための命令swi(store word instruction)
+ 
+### bootloader
+0x00000000からbootloaderが置かれていて、プログラムを0x00000100にloadする。
+loadし終わると、0x00000100にjumpして実行を開始
+
+bootloader
 ```python
   .globl main
   .text
