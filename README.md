@@ -19,10 +19,10 @@ Data Memory(2^26 byte)
 + 0x0000000からstatic data,heap,stack,MMIOが割り当てられる。
 
 MMIO
-+ 0x3FFFFF4: uart_in
-+ 0x3FFFFF8: uart_in_valid
-+ 0x3FFFFFC: uart_out_valid
-+ 0x3FFFFFF: uart_out
++ 0x3FFFFF0: uart_in
++ 0x3FFFFF4: uart_in_valid
++ 0x3FFFFF8: uart_out_valid
++ 0x3FFFFFC: uart_out
 
 Instruction Memory
 + Data Memoryとは別のメモリ空間

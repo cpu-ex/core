@@ -45,8 +45,8 @@ module register_file(
         end
     end
 
-    assign rdata0 = reg_file[raddr0];
-    assign rdata1 = reg_file[raddr1];
+    assign rdata0 = (raddr0 == waddr && we && waddr != 0) ? wdata : reg_file[raddr0];
+    assign rdata1 = (raddr1 == waddr && we && waddr != 0) ? wdata : reg_file[raddr1];
 
 endmodule
 
@@ -76,7 +76,7 @@ module fregister_file(
         end
     end
 
-    assign rdata0 = reg_file[raddr0];
-    assign rdata1 = reg_file[raddr1];
+    assign rdata0 = (raddr0 == waddr && we) ? wdata : reg_file[raddr0];
+    assign rdata1 = (raddr1 == waddr && we) ? wdata : reg_file[raddr1];
 
 endmodule
