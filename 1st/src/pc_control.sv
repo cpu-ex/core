@@ -24,18 +24,18 @@ module pc_control (
     input wire [1:0] branchjump, // 2'b00 -> pc += 4
                                  // 2'b01 -> branch
                                  // 2'b10 -> pc += (signed)imm (JAL)
-                                 // 2'b11 -> pc = aluresult (JALR)
+                                 // 2'b11 -> pc = rdata0 + (signed)imm (JALR)
     input wire flag,
     input wire [31:0] pc4,   // pc + 4
     input wire [31:0] pcimm, // pc + imm
-    input wire [31:0] aluresult,
+    input wire [31:0] pcjalr,
 
     output wire [31:0] pcnext
     );
 
     assign pcnext = branchjump == 2'b00 ? pc4 :
                     branchjump == 2'b10 ? pcimm :
-                    branchjump == 2'b11 ? aluresult :
+                    branchjump == 2'b11 ? pcjalr :
                     flag == 1'b1 ? pcimm : 
                     pc4; // (flag == 1'b0)
 

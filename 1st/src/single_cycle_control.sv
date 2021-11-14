@@ -25,20 +25,20 @@ module single_cycle_control(
     input wire [2:0] funct3, // [14,12]
     input wire [6:0] funct7, // [31,25]
 
-    output logic [1:0] memtoreg,
+    output logic memtoreg,
     output logic memwrite,
     output logic memread,
     output logic imemwrite,
     output logic [1:0] branchjump, 
     output logic [3:0] aluop,
     output logic [3:0] fpuop,
-    output logic alusrc0,
-    output logic alusrc1,
-    output logic fpusrc0,
+    output logic [1:0] src0,
+    output logic [1:0] src1,
     output logic regwrite,
-    output logic fregwrite,
     output logic aluorfpu,
-    output logic wordorbyte
+    output logic rs0flag,
+    output logic rs1flag,
+    output logic rdflag
     //...
     );
     
@@ -49,8 +49,8 @@ module single_cycle_control(
     localparam JAL    = 7'b1101111; // jal 
     localparam JALR   = 7'b1100111; // jalr
     localparam BRANCH = 7'b1100011; // beq, bne, blt, bge
-    localparam LOAD   = 7'b0000011; // lw, lb
-    localparam STORE  = 7'b0100011; // sw, sb, swi
+    localparam LOAD   = 7'b0000011; // lw
+    localparam STORE  = 7'b0100011; // sw, swi
     localparam CALCI  = 7'b0010011; // addi, slti, slli, srli, srai, xori, andi, ori
     localparam CALC   = 7'b0110011; // add, sub, slt, sll, srl, sra, xor, and, or, mul, div
     localparam FLOAD  = 7'b0000111; // fl
@@ -112,11 +112,10 @@ module single_cycle_control(
 
     logic i_lui, i_auipc, i_jal, i_jalr, 
           i_beq, i_bne, i_blt, i_bge, 
-          i_lw, i_lb, 
-          i_sw, i_sb, i_swi, 
+          i_lw,
+          i_sw, i_swi, 
           i_addi, i_slli, i_slti, i_xori, i_ori, i_andi, i_srli, i_srai,
           i_add, i_sub, i_sll, i_srl, i_sra, i_slt, i_xor, i_or, i_and,
-          i_mul, i_div,
           i_fload, i_fstore, 
           i_fadd, i_fsub, i_fmul, i_fdiv, i_fsqrt, 
           i_fsgnj, i_fsgnjn, i_fsgnjx, 
@@ -134,10 +133,8 @@ module single_cycle_control(
     assign i_bge = (opcode == BRANCH && funct3 == BGE);
 
     assign i_lw = (opcode == LOAD && funct3 == LW);
-    assign i_lb = (opcode == LOAD && funct3 == LB);
 
     assign i_sw = (opcode == STORE && funct3 == SW);
-    assign i_sb = (opcode == STORE && funct3 == SB);
     assign i_swi = (opcode == STORE && funct3 == SWI);
 
     assign i_addi = (opcode == CALCI && funct3 == ADDSUBMUL); // subi ,muli don't exist
@@ -159,9 +156,6 @@ module single_cycle_control(
     assign i_or = (opcode == CALC && funct3 == OR);
     assign i_and = (opcode == CALC && funct3 == AND);
 
-    assign i_mul = (opcode == CALC && funct3 == ADDSUBMUL && funct7 == MUL);
-    assign i_div = (opcode == CALC && funct3 == XORDIV && funct7 == DIV);
-
     assign i_fload = (opcode == FLOAD);
     assign i_fstore = (opcode == FSTORE);
 
@@ -180,24 +174,19 @@ module single_cycle_control(
     assign i_fcvtsw = (opcode == F && funct7 == FCVTSW);
 
     // memtoreg
-    // 2'b00 -> result (alu or fpu)
-    // 2'b01 -> memrdata
-    // 2'b10 -> pc + 4
-    // 2'b11 -> pc + (signed)imm
-    assign memtoreg = (i_lw | i_lb | i_fload) ? 2'b01 :
-                      (i_jal | i_jalr) ? 2'b10 :
-                      (i_auipc) ? 2'b11 :
-                      2'b00;
+    // 1'b0 -> result (alu or fpu)
+    // 1'b1 -> memrdata
+    assign memtoreg = (i_lw || i_fload);
 
     // memwrite
     // 1'b0 -> don't write
     // 1'b1 -> write
-    assign memwrite = (i_sw | i_sb | i_fstore);
+    assign memwrite = (i_sw || i_fstore);
 
     // memread
     // 1'b0 -> don't read
     // 1'b1 -> read
-    assign memread = (i_lw | i_lb | i_fload);
+    assign memread = (i_lw || i_fload);
 
     // imemwrite
     // 1'b0 -> don't write
@@ -208,7 +197,7 @@ module single_cycle_control(
     // 2'b00 -> pc += 4
     // 2'b01 -> branch
     // 2'b10 -> pc += (signed)imm (JAL)
-    // 2'b11 -> pc = aluresult (JALR)
+    // 2'b11 -> pc = rdata0 + (signed)imm (JALR)
     assign branchjump = (opcode == BRANCH) ? 2'b01:
                         i_jal ? 2'b10:
                         i_jalr ? 2'b11:
@@ -227,10 +216,8 @@ module single_cycle_control(
     // 4'b1001 -> bne
     // 4'b1010 -> blt
     // 4'b1011 -> bge
-    // 4'b1100 -> *
-    // 4'b1101 -> /
     // default -> 
-    assign aluop = i_sub ? 4'b0001:
+    assign aluop = (i_sub || i_beq)  ? 4'b0001:
                    (i_slt || i_slti) ? 4'b0010:
                    (i_xor || i_xori) ? 4'b0011:
                    (i_and || i_andi) ? 4'b0100:
@@ -241,8 +228,6 @@ module single_cycle_control(
                    i_bne ? 4'b1001:
                    i_blt ? 4'b1010:
                    i_bge ? 4'b1011:
-                   i_mul ? 4'b1100:
-                   i_div ? 4'b1101:
                    4'b0000;
 
     // fpuop
@@ -275,41 +260,45 @@ module single_cycle_control(
                    i_fcvtsw ? 4'b1100:
                    4'b0000;
 
-    // alusrc0
-    // 1'b0 -> rdata0(from integer register file)
-    // 1'b1 -> 0 (LUI)
-    assign alusrc0 = i_lui;
+    // src0
+    // 2'b00 -> rdata0(from register file)
+    // 2'b01 -> 0 (LUI)
+    // 2'b10 -> pc
+    assign src0 = i_lui ? 2'b01:
+                  (i_auipc || i_jal || i_jalr) ? 2'b10:
+                  2'b00;
 
-    // alusrc1
-    // 1'b0 -> rdata1(from integer register file)
-    // 1'b1 -> imm
-    assign alusrc1 = (i_lui || i_jalr || i_lw || i_lb || i_sw || i_sb || i_swi ||
-                      opcode == CALCI || i_fload || i_fstore);
-
-    // fpusrc0
-    // 1'b0 -> frdata0(from floating point register file)
-    // 1'b1 -> rdata0(from integer register file) fcvtsw
-    assign fpusrc0 = i_fcvtsw;
+    // src1
+    // 2'b00 -> rdata1(from register file)
+    // 2'b01 -> 4
+    // 2'b10 -> imm
+    assign src1 = (i_jal || i_jalr) ? 2'b01:
+                  (i_auipc || i_lui || i_lw || i_sw || i_swi || opcode == CALCI || i_fload || i_fstore) ? 2'b10:
+                  2'b00;
 
     // regwrite
     // 1'b0 -> don't write
     // 1'b1 -> write
-    assign regwrite = ~(opcode == BRANCH || i_sw || i_sb || i_swi || i_fstore ||
-                        (opcode == F && ~i_fcvtws));
-
-    // fregwrite
-    // 1'b0 -> don't write
-    // 1'b1 -> write
-    assign fregwrite = (i_fload || (opcode == F && ~i_fcvtws));
+    assign regwrite = ~(opcode == BRANCH || i_sw || i_swi || i_fstore);
 
     // aluorfpu
-    // 1'b0 -> aluresult & memwdata = read1
-    // 1'b1 -> fpuresult & memwdata = fread1
-    assign aluorfpu = opcode == F || i_fload || i_fstore;
+    // 1'b0 -> aluresult 
+    // 1'b1 -> fpuresult
+    assign aluorfpu = opcode == F;
 
-    // wordorbyte
-    // 1'b0 -> word
-    // 1'b1 -> byte
-    assign wordorbyte = i_lb || i_sb;
+    // rs0flag
+    // 1'b0 -> integer register
+    // 1'b1 -> floating point register
+    assign rs0flag = opcode == F && ~i_fcvtws;
+
+    // rs1flag
+    // 1'b0 -> integer register
+    // 1'b1 -> floating point register
+    assign rs1flag = opcode == F || i_fstore;
+
+    // rdflag
+    // 1'b0 -> integer register
+    // 1'b1 -> floating point register
+    assign rdflag = opcode == F && ~i_fcvtsw;
 
 endmodule

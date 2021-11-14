@@ -44,8 +44,6 @@ module alu(
             4'b1001: result = src0 == src1 ? 32'b1 : 32'b0; // BNE
             4'b1010: result = $signed(src0) <  $signed (src1) ? 32'b0 : 32'b1; // BLT
             4'b1011: result = $signed(src0) >= $signed (src1) ? 32'b0 : 32'b1; // BGE
-            //4'b1100: result = $signed(src0) * $signed(src1); // MUL
-            //4'b1101: result = $signed(src0) / $signed(src1); // DIV ??
             default: result = 32'b0;
         endcase
     end

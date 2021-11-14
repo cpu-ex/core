@@ -19,25 +19,26 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
+// 0-31 integer register 
+// 32-63 floating point register
 module register_file(
     input wire clk,
     input wire rstn,
-    input wire [4:0] raddr0,
-    input wire [4:0] raddr1,
+    input wire [5:0] raddr0,
+    input wire [5:0] raddr1,
     input wire we,
-    input wire [4:0] waddr,
+    input wire [5:0] waddr,
     input wire [31:0] wdata,
 
     output wire [31:0] rdata0,
     output wire [31:0] rdata1
     );
 
-    reg [31:0] reg_file[31:0];
+    reg [31:0] reg_file[63:0];
 
     always_ff @(posedge clk) begin
         if (~rstn) begin
-            for (int i = 0;i < 32; i++) begin
+            for (int i = 0;i < 64; i++) begin
                 reg_file[i] <= 0;
             end
         end else if (we && waddr != 0) begin
@@ -50,33 +51,3 @@ module register_file(
 
 endmodule
 
-
-module fregister_file(
-    input wire clk,
-    input wire rstn,
-    input wire [4:0] raddr0,
-    input wire [4:0] raddr1,
-    input wire we,
-    input wire [4:0] waddr,
-    input wire [31:0] wdata,
-
-    output wire [31:0] rdata0,
-    output wire [31:0] rdata1
-    );
-
-    reg [31:0] reg_file[31:0];
-
-    always_ff @(posedge clk) begin
-        if (~rstn) begin
-            for (int i = 0;i < 32; i++) begin
-                reg_file[i] <= 0;
-            end
-        end else if (we) begin
-            reg_file[waddr] <= wdata;
-        end
-    end
-
-    assign rdata0 = (raddr0 == waddr && we) ? wdata : reg_file[raddr0];
-    assign rdata1 = (raddr1 == waddr && we) ? wdata : reg_file[raddr1];
-
-endmodule

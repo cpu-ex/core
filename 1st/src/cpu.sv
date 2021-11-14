@@ -43,8 +43,8 @@ module cpu(
     
     // pc 
     logic [31:0] pcF, pcD, pcE, pcM, pcW;
-    logic [31:0] pc4E, pc4W;
-    logic [31:0] pcimmE, pcimmW;
+    logic [31:0] pc4E;
+    logic [31:0] pcimmE;
     logic [31:0] pcnextE, pcnextM, pcnextW;
     
     // imem
@@ -52,25 +52,22 @@ module cpu(
     logic [6:0] opcodeD;
     logic [2:0] funct3D; 
     logic [6:0] funct7D;
-    logic [4:0] rs0D, rs0E, rs0M, rs0W;
-    logic [4:0] rs1D, rs1E, rs1M, rs1W;
-    logic [4:0] rdD, rdE, rdM, rdW;
+    logic [5:0] rs0D, rs0E, rs0M, rs0W;
+    logic [5:0] rs1D, rs1E, rs1M, rs1W;
+    logic [5:0] rdD, rdE, rdM, rdW;
     
     // control signal
-    logic [1:0] memtoregD, memtoregE, memtoregM, memtoregW;
+    logic memtoregD, memtoregE, memtoregM, memtoregW;
     logic memwriteD, memwriteE, memwriteM;
     logic memreadD, memreadE, memreadM;
     logic imemwriteD, imemwriteE, imemwriteM;
     logic [1:0] branchjumpD, branchjumpE;
     logic [3:0] aluopD, aluopE;
     logic [3:0] fpuopD, fpuopE;
-    logic alusrc0D, alusrc0E;
-    logic alusrc1D, alusrc1E;
-    logic fpusrc0D, fpusrc0E;
+    logic [1:0] alusrc0D, alusrc0E;
+    logic [1:0] alusrc1D, alusrc1E;
     logic regwriteD, regwriteE, regwriteM, regwriteW;
-    logic fregwriteD, fregwriteE, fregwriteM, fregwriteW;
     logic aluorfpuD, aluorfpuE, aluorfpuM, aluorfpuW;
-    logic wordorbyteD, wordorbyteE, wordorbyteM;
 
     // imm
     logic [31:0] immD, immE, immM, immW;
@@ -80,10 +77,6 @@ module cpu(
     logic [31:0] rdata1D, rdata1E;
     logic [31:0] regwdataW;
 
-    // freg file
-    logic [31:0] frdata0D, frdata0E;
-    logic [31:0] frdata1D, frdata1E;
-
     // alu
     logic [31:0] src0E;
     logic [31:0] src1E;
@@ -91,18 +84,13 @@ module cpu(
     logic flagE;
 
     // fpu
-    logic [31:0] fsrc0E;
     logic [31:0] fpuresultE, fpuresultM;
     logic [31:0] resultM, resultW; // apuresult or fpuresult
 
     // data memory && MMIO(uart)
     logic [31:0] memwdataE, memwdataM;
-    logic [31:0] memrdata_wordM;
-    logic [31:0] memrdata_byteM;
     logic [31:0] memrdataM;
     logic [31:0] memdataM, memdataW;
-    assign memrdata_byteM = {{24{memrdata_wordM[31]}},memrdata_wordM[31:24]}; // big endian
-    // assign memrdata_byteM = {{24{memrdata_wordM[7]}},memrdata_wordM[7:0]}; // little endian
     assign memdataM = aluresultM[9:0] == 10'b0000000000 ? {24'b0,uart_rx_data}:
                       aluresultM[9:0] == 10'b0000000100 ? {31'b0,~empty}:
                       aluresultM[9:0] == 10'b0000001000 ? {31'b0,~full}:
@@ -157,22 +145,13 @@ module cpu(
 
             alusrc1E <= 0;
 
-            fpusrc0E <= 0;
-
             regwriteE <= 0;
             regwriteM <= 0;
             regwriteW <= 0;
 
-            fregwriteE <= 0;
-            fregwriteM <= 0;
-            fregwriteW <= 0;
-
             aluorfpuE <= 0;
             aluorfpuM <= 0;
             aluorfpuW <= 0;
-
-            wordorbyteE <= 0;
-            wordorbyteM <= 0;
 
             immE <= 0;
             immM <= 0;
@@ -181,10 +160,6 @@ module cpu(
             rdata0E <= 0;
 
             rdata1E <= 0;
-
-            frdata0E <= 0;
-
-            frdata1E <= 0;
 
             fpuresultM <= 0;
 
@@ -221,18 +196,13 @@ module cpu(
                     fpuopE <= fpuopD;
                     alusrc0E <= alusrc0D;
                     alusrc1E <= alusrc1D;
-                    fpusrc0E <= fpusrc0D;
                     regwriteE <= regwriteD;
-                    fregwriteE <= fregwriteD;
                     aluorfpuE <= aluorfpuD;
-                    wordorbyteE <= wordorbyteD;
 
                     immE <= immD;
 
                     rdata0E <= rdata0D;
                     rdata1E <= rdata1D;
-                    frdata0E <= frdata0D;
-                    frdata1E <= frdata1D;
                 end
                 s_execute:
                 begin
@@ -247,9 +217,7 @@ module cpu(
                     memtoregM <= memtoregE;
                     memreadM <= memreadE;
                     regwriteM <= regwriteE;
-                    fregwriteM <= fregwriteE;
                     aluorfpuM <= aluorfpuE;
-                    wordorbyteM <= wordorbyteE;
 
                     immM <= immE;
 
@@ -267,7 +235,6 @@ module cpu(
 
                     memtoregW <= memtoregM;  
                     regwriteW <= regwriteM;
-                    fregwriteW <= fregwriteM;
                     aluorfpuW <= aluorfpuM;
 
                     immW <= immM;
@@ -295,12 +262,13 @@ module cpu(
                         .dout(instrF));
     
     // ----- 2 decode stage -----
+    logic rs0flag,rs1flag,rdflag;
     assign opcodeD = instrD[6:0];
     assign funct3D = instrD[14:12];
     assign funct7D = instrD[31:25];
-    assign rs0D = instrD[19:15];
-    assign rs1D = instrD[24:20];
-    assign rdD = instrD[11:7];
+    assign rs0D = {rs0flag,instrD[19:15]};
+    assign rs1D = {rs1flag,instrD[24:20]};
+    assign rdD = {rdflag,instrD[11:7]};
 
     // controler
     single_cycle_control controler(.opcode(opcodeD),
@@ -313,13 +281,13 @@ module cpu(
                                    .branchjump(branchjumpD),
                                    .aluop(aluopD),
                                    .fpuop(fpuopD),
-                                   .alusrc0(alusrc0D),
-                                   .alusrc1(alusrc1D),
-                                   .fpusrc0(fpusrc0D),
+                                   .src0(alusrc0D),
+                                   .src1(alusrc1D),
                                    .regwrite(regwriteD),
-                                   .fregwrite(fregwriteD),
                                    .aluorfpu(aluorfpuD),
-                                   .wordorbyte(wordorbyteD));
+                                   .rs0flag(rs0flag),
+                                   .rs1flag(rs1flag),
+                                   .rdflag(rdflag));
 
     // imm
     immgen immgen(.instr(instrD),
@@ -335,33 +303,21 @@ module cpu(
                           .wdata(regwdataW),
                           .rdata0(rdata0D),
                           .rdata1(rdata1D));
-    
-    // freg file
-    fregister_file fregfile(.clk(clk),
-                            .rstn(rstn),
-                            .raddr0(rs0D),
-                            .raddr1(rs1D),
-                            .we(fregwriteW),
-                            .waddr(rdW),
-                            .wdata(regwdataW),
-                            .rdata0(frdata0D),
-                            .rdata1(frdata1D));
-    
+        
     // ----- 3 execute stage -----
-    mux2 src0mux2(.data0(rdata0E),
+    mux4 src0mux4(.data0(rdata0E),
                   .data1(32'b0),
+                  .data2(pcE),
+                  .data3(32'b0),
                   .s(alusrc0E),
                   .data(src0E));
 
-    mux2 src1mux2(.data0(rdata1E),
-                  .data1(immE),
+    mux4 src1mux4(.data0(rdata1E),
+                  .data1(32'b100),
+                  .data2(immE),
+                  .data3(32'b0),
                   .s(alusrc1E),
                   .data(src1E));
-
-    mux2 fsrc0mux2(.data0(frdata0E),
-                   .data1(rdata0E),
-                   .s(fpusrc0E),
-                   .data(fsrc0E));
     
     // alu
     alu alu(.src0(src0E),
@@ -371,25 +327,24 @@ module cpu(
             .result(aluresultE));
 
     // fpu
-    fpu fpu(.src0(fsrc0E),
-            .src1(frdata1E),
+    fpu fpu(.src0(src0E),
+            .src1(src1E),
             .fpuop(fpuopE),
             .result(fpuresultE));
 
     // next pc
+    logic [31:0] pcjalrE;
     assign pc4E = pcE + 32'b100; 
     assign pcimmE = pcE + immE; 
+    assign pcjalrE = rdata0E + immE;
     pc_control pc_control(.branchjump(branchjumpE),
                           .flag(flagE),
                           .pc4(pc4E),
                           .pcimm(pcimmE),
-                          .aluresult(aluresultE),
+                          .pcjalr(pcjalrE),
                           .pcnext(pcnextE));
 
-    mux2 memwdatamux2(.data0(rdata1E),
-                      .data1(frdata1E),
-                      .s(aluorfpuE),
-                      .data(memwdataE));
+    assign memwdataE = rdata1E;
 
     // ----- 4 Memory stage -----
     // imem
@@ -402,25 +357,16 @@ module cpu(
                         .we(memwriteM),
                         .addr(aluresultM[11:2]),
                         .di(memwdataM),
-                        .dout(memrdata_wordM));
+                        .dout(memrdataM));
 
     mux2 resultmux2(.data0(aluresultM),
                     .data1(fpuresultM),
                     .s(aluorfpuM),
                     .data(resultM));
-
-    mux2 memrdatamux2(.data0(memrdata_wordM),
-                      .data1(memrdata_byteM),
-                      .s(wordorbyteM),
-                      .data(memrdataM));
     
     // ----- 5 writeback stage -----
-    assign pc4W = pcW + 32'b100;
-    assign pcimmW = pcW + immW;
-    mux4 regwdatamux4(.data0(resultW),
+    mux2 regwdatamux2(.data0(resultW),
                       .data1(memdataW),
-                      .data2(pc4W),
-                      .data3(pcimmW),
                       .s(memtoregW),
                       .data(regwdataW));
 
