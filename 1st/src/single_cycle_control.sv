@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
@@ -64,9 +64,7 @@ module single_cycle_control(
     localparam BNE = 3'b001;
     localparam BLT = 3'b100;
     localparam BGE = 3'b101;
-    localparam LB  = 3'b000;
     localparam LW  = 3'b010;
-    localparam SB  = 3'b000;
     localparam SW  = 3'b010;
     localparam SWI = 3'b011;
     localparam ADDSUBMUL = 3'b000; // -> funct7
@@ -76,19 +74,13 @@ module single_cycle_control(
     localparam XORDIV = 3'b100; // -> funct7
     localparam OR  = 3'b110;
     localparam AND = 3'b111;
-    localparam OUT = 3'b000;
-    localparam IND = 3'b001;
-    localparam INI = 3'b010;
-    localparam INWAIT = 3'b011;
 
     // funct7 
     localparam ADD = 7'b0000000;
     localparam SUB = 7'b0100000;
-    localparam MUL = 7'b0000001;
     localparam SRL = 7'b0000000;
     localparam SRA = 7'b0100000;
     localparam XOR = 7'b0000000;
-    localparam DIV = 7'b0000001;
 
     // F
     // funct7
@@ -110,7 +102,7 @@ module single_cycle_control(
     localparam FLT    = 3'b001;
     localparam FLE    = 3'b000;
 
-    logic i_lui, i_auipc, i_jal, i_jalr, 
+    /* verilator lint_off UNUSED */ logic i_lui, i_auipc, i_jal, i_jalr, 
           i_beq, i_bne, i_blt, i_bge, 
           i_lw,
           i_sw, i_swi, 

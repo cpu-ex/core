@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
@@ -18,6 +17,8 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`include "def.sv"
+
 
 module cpu(
     input wire clk,
@@ -32,343 +33,262 @@ module cpu(
     output wire uart_wr_en
     );   
 
-    // state
-    localparam s_idle      = 3'd0;
-    localparam s_fetch     = 3'd1;
-    localparam s_decode    = 3'd2;
-    localparam s_execute   = 3'd3;
-    localparam s_memory    = 3'd4;
-    localparam s_writeback = 3'd5;
-    logic [2:0] state;
-    
-    // pc 
-    logic [31:0] pcF, pcD, pcE, pcM, pcW;
-    logic [31:0] pc4E;
-    logic [31:0] pcimmE;
-    logic [31:0] pcnextE, pcnextM, pcnextW;
-    
-    // imem
-    logic [31:0] instrF, instrD;
-    logic [6:0] opcodeD;
-    logic [2:0] funct3D; 
-    logic [6:0] funct7D;
-    logic [5:0] rs0D, rs0E, rs0M, rs0W;
-    logic [5:0] rs1D, rs1E, rs1M, rs1W;
-    logic [5:0] rdD, rdE, rdM, rdW;
-    
-    // control signal
-    logic memtoregD, memtoregE, memtoregM, memtoregW;
-    logic memwriteD, memwriteE, memwriteM;
-    logic memreadD, memreadE, memreadM;
-    logic imemwriteD, imemwriteE, imemwriteM;
-    logic [1:0] branchjumpD, branchjumpE;
-    logic [3:0] aluopD, aluopE;
-    logic [3:0] fpuopD, fpuopE;
-    logic [1:0] alusrc0D, alusrc0E;
-    logic [1:0] alusrc1D, alusrc1E;
-    logic regwriteD, regwriteE, regwriteM, regwriteW;
-    logic aluorfpuD, aluorfpuE, aluorfpuM, aluorfpuW;
+    logic [31:0] pc; // fetch stage stall -> pc <= pc
+    logic [31:0] pcnext;
+    logic [1:0] forward0;
+    logic [1:0] forward1;
+    logic lwstall;
+    logic branchjump_miss;
 
-    // imm
-    logic [31:0] immD, immE, immM, immW;
+    wire fetch_rstn;
+    wire fetch_enable;
+    /* verilator lint_off UNUSED */ wire fetch_fin;
 
-    // reg file 
-    logic [31:0] rdata0D, rdata0E;
-    logic [31:0] rdata1D, rdata1E;
-    logic [31:0] regwdataW;
+    wire decode_rstn;
+    wire decode_enable;
+    wire decode_fin;
 
-    // alu
-    logic [31:0] src0E;
-    logic [31:0] src1E;
-    logic [31:0] aluresultE, aluresultM;
-    logic flagE;
+    wire exec_rstn;
+    wire exec_enable;
+    wire exec_fin;
 
-    // fpu
-    logic [31:0] fpuresultE, fpuresultM;
-    logic [31:0] resultM, resultW; // apuresult or fpuresult
+    wire memory_rstn;
+    wire memory_enable;
+    wire memory_fin;
 
-    // data memory && MMIO(uart)
-    logic [31:0] memwdataE, memwdataM;
-    logic [31:0] memrdataM;
-    logic [31:0] memdataM, memdataW;
-    assign memdataM = aluresultM[9:0] == 10'b0000000000 ? {24'b0,uart_rx_data}:
-                      aluresultM[9:0] == 10'b0000000100 ? {31'b0,~empty}:
-                      aluresultM[9:0] == 10'b0000001000 ? {31'b0,~full}:
-                      memrdataM;
-    assign uart_rd_en = (state == s_memory) && memreadM && aluresultM[9:0] == 10'b0000000000;
-    assign uart_wr_en = (state == s_memory) && memwriteM && aluresultM[9:0] == 10'b0000001100;
-    assign uart_tx_data = memwdataM[7:0];
+    wire write_rstn;
+    wire write_enable;
+    wire write_fin;
 
-    always_ff @(posedge clk) begin
-        if (~rstn) begin
-            state <= s_idle;
-            pcD <= 0;
-            pcE <= 0;
-            pcM <= 0;
-            pcW <= 0;
 
-            pcnextM <= 0;
-            pcnextW <= 0;
+    logic [31:0] imemraddr;
+    logic [31:0] imemrdata;
+    logic [31:0] pc_FD;
+    logic [31:0] instr_FD;
 
-            instrD <= 0;
+    fetch fetch(.clk(clk),
+                .rstn(rstn && fetch_rstn),
+                .enable(fetch_enable),
+                .fin(fetch_fin),
+                .imemraddr(imemraddr),
+                .imemrdata(imemrdata),
+                .branchjump_miss(branchjump_miss),
+                .lwstall(lwstall),
+                .pc(pc),
+                .pcnext(pcnext),
+                .pc_out(pc_FD),
+                .instr(instr_FD));
 
-            rs0E <= 0;
-            rs0M <= 0;
-            rs0W <= 0;
-
-            rs1E <= 0;
-            rs1M <= 0;
-            rs1W <= 0;
-
-            rdE <= 0;
-            rdM <= 0;
-            rdW <= 0;
-
-            memtoregE <= 0;
-            memtoregM <= 0;
-            memtoregW <= 0;
-
-            memwriteE <= 0;
-
-            memreadE <= 0;
-            memreadM <= 0;
-
-            imemwriteE <= 0;
-
-            branchjumpE <= 0;
-
-            aluopE <= 0;
-
-            fpuopE <= 0;
-
-            alusrc0E <= 0;
-
-            alusrc1E <= 0;
-
-            regwriteE <= 0;
-            regwriteM <= 0;
-            regwriteW <= 0;
-
-            aluorfpuE <= 0;
-            aluorfpuM <= 0;
-            aluorfpuW <= 0;
-
-            immE <= 0;
-            immM <= 0;
-            immW <= 0;
-
-            rdata0E <= 0;
-
-            rdata1E <= 0;
-
-            fpuresultM <= 0;
-
-            resultW <= 0;
-
-            memdataW <= 0;
+    // FD
+    logic [31:0] pc_FD_reg;
+    logic [31:0] instr_FD_reg;
+    always @(posedge clk) begin
+        if (~(rstn && decode_rstn)) begin
+            pc_FD_reg <= 32'b0;
+            instr_FD_reg <= 32'b0;
         end else begin
-            case (state)
-                s_idle:
-                begin
-                    state <= s_fetch;
-                end
-                s_fetch:
-                begin
-                    state <= s_decode;
-                    pcD <= pcF;
-                    instrD <= instrF;
-                end
-                s_decode:
-                begin
-                    state <= s_execute;
-                    pcE <= pcD;
-
-                    rs0E <= rs0D;
-                    rs1E <= rs1D;
-                    rdE <= rdD;
-
-                    memtoregE <= memtoregD;
-                    memwriteE <= memwriteD;
-                    memreadE <= memreadD;
-                    imemwriteE <= imemwriteD;
-                    branchjumpE <= branchjumpD;
-                    aluopE <= aluopD;
-                    fpuopE <= fpuopD;
-                    alusrc0E <= alusrc0D;
-                    alusrc1E <= alusrc1D;
-                    regwriteE <= regwriteD;
-                    aluorfpuE <= aluorfpuD;
-
-                    immE <= immD;
-
-                    rdata0E <= rdata0D;
-                    rdata1E <= rdata1D;
-                end
-                s_execute:
-                begin
-                    state <= s_memory;
-                    pcM <= pcE;
-                    pcnextM <= pcnextE;
-
-                    rs0M <= rs0E;
-                    rs1M <= rs1E;
-                    rdM <= rdE;
-
-                    memtoregM <= memtoregE;
-                    memreadM <= memreadE;
-                    regwriteM <= regwriteE;
-                    aluorfpuM <= aluorfpuE;
-
-                    immM <= immE;
-
-                    fpuresultM <= fpuresultE;
-                end
-                s_memory:
-                begin
-                    state <= s_writeback;
-                    pcW <= pcM;
-                    pcnextW <= pcnextM;
-
-                    rs0W <= rs0M;
-                    rs1W <= rs1M;
-                    rdW <= rdM;
-
-                    memtoregW <= memtoregM;  
-                    regwriteW <= regwriteM;
-                    aluorfpuW <= aluorfpuM;
-
-                    immW <= immM;
-
-                    resultW <= resultM;
-                    memdataW <= memdataM;
-                end
-                s_writeback:
-                begin
-                    state <= s_fetch;
-                end
-            endcase
+            if (decode_enable) begin
+                pc_FD_reg <= pc_FD;
+                instr_FD_reg <= instr_FD;
+            end
         end
     end
 
-    // ----- 1 fetch stage -----
-    // imem
-    // only execute store word
-    assign pcF = pcnextW;
+   
+    logic [5:0] rs0;
+    logic [5:0] rs1;
+    logic [31:0] rs0data;
+    logic [31:0] rs1data;
+    logic [31:0] regwdataE;
+    logic [31:0] regwdataM;
+    Inst inst_DE;
+    logic [31:0] rdata0_DE;
+    logic [31:0] rdata1_DE;
+
+    decode decode(.clk(clk),
+                   .rstn(rstn && decode_rstn),
+                   .enable(decode_enable),
+                   .fin(decode_fin),
+                   .rs0(rs0),
+                   .rs1(rs1),
+                   .rs0data(rs0data),
+                   .rs1data(rs1data),
+                   .regwdataE(regwdataE),
+                   .regwdataM(regwdataM),
+                   .forward0(forward0),
+                   .forward1(forward1),
+                   .pc(pc_FD_reg),
+                   .instr(instr_FD_reg),
+                   .inst(inst_DE),
+                   .rdata0(rdata0_DE),
+                   .rdata1(rdata1_DE));
+
+    // DE
+    Inst inst_DE_reg;
+    logic [31:0] rdata0_DE_reg;
+    logic [31:0] rdata1_DE_reg;
+    always @(posedge clk) begin
+        if (~(rstn && exec_rstn)) begin
+            inst_DE_reg <= '{default : '0};
+            rdata0_DE_reg <= 5'b0;
+            rdata1_DE_reg <= 5'b0;
+        end else begin
+            if (exec_enable) begin
+                inst_DE_reg <= inst_DE;
+                rdata0_DE_reg <= rdata0_DE;
+                rdata1_DE_reg <= rdata1_DE;
+            end
+        end
+    end 
+
+
+    logic [5:0] rdE;
+    logic regwriteE;
+    logic memreadE;
+    Inst inst_EM;
+    logic [31:0] aluresult_EM;
+    logic [31:0] result_EM;
+    logic [31:0] rdata1_EM;
+    assign regwdataE = result_EM;
+
+    exec exec (.clk(clk),
+               .rstn(rstn && exec_rstn),
+               .enable(exec_enable),
+               .fin(exec_fin),
+               .rd(rdE),
+               .regwrite(regwriteE),
+               .memread(memreadE),
+               .branchjump_miss(branchjump_miss),
+               .rdata0(rdata0_DE_reg),
+               .rdata1(rdata1_DE_reg),
+               .inst(inst_DE_reg),
+               .pcnext(pcnext),
+               .inst_out(inst_EM),
+               .aluresult(aluresult_EM),
+               .result(result_EM),
+               .rdata1_out(rdata1_EM));
+
+
+    logic [5:0] rdM;
+    logic regwriteM;
+    logic imemwrite;
+    logic [31:0] imemwaddr;
+    logic [31:0] imemwdata;
+
+    Inst inst_MW;
+    logic [31:0] regwdata_MW;
+    assign regwdataM = regwdata_MW;
+
+    memory memory(.clk(clk),
+                  .rstn(rstn && memory_rstn),
+                  .enable(memory_enable),
+                  .fin(memory_fin),
+                  .rd(rdM),
+                  .regwrite(regwriteM),
+                  .imemwrite(imemwrite),
+                  .imemwaddr(imemwaddr),
+                  .imemwdata(imemwdata),
+                  .inst(inst_EM),
+                  .aluresult(aluresult_EM),
+                  .result(result_EM),
+                  .rdata1(rdata1_EM),
+                  .uart_rx_data(uart_rx_data),
+                  .empty(empty),
+                  .full(full),
+                  .inst_out(inst_MW),
+                  .regwdata(regwdata_MW),
+                  .uart_rd_en(uart_rd_en),
+                  .uart_wr_en(uart_wr_en),
+                  .uart_tx_data(uart_tx_data));
+
+    // MW
+    Inst inst_MW_reg;
+    logic [31:0] regwdata_MW_reg;
+    always @(posedge clk) begin
+        if (~(rstn && write_rstn)) begin
+            inst_MW_reg <= '{default : '0};
+            regwdata_MW_reg <= 32'b0;
+        end else begin
+            if (write_enable) begin
+                inst_MW_reg <= inst_MW;
+                regwdata_MW_reg <= regwdata_MW;
+            end
+        end
+    end 
+ 
+    logic [31:0] regwdata;
+    logic regwrite;
+    logic [5:0] rd;
+
+    write write(.clk(clk),
+                .rstn(rstn && write_rstn),
+                .enable(write_enable),
+                .fin(write_fin),
+                .regwdata(regwdata),
+                .regwrite(regwrite),
+                .rd(rd),
+                .inst(inst_MW_reg),
+                .regwdata_in(regwdata_MW_reg));
+                
+    // inst memory
     ram_block_inst imem(.clk(clk), 
-                        .we(imemwriteM), 
-                        .raddr(pcF[11:2]),
-                        .waddr(aluresultM[11:2]),  
-                        .di(memwdataM),
-                        .dout(instrF));
-    
-    // ----- 2 decode stage -----
-    logic rs0flag,rs1flag,rdflag;
-    assign opcodeD = instrD[6:0];
-    assign funct3D = instrD[14:12];
-    assign funct7D = instrD[31:25];
-    assign rs0D = {rs0flag,instrD[19:15]};
-    assign rs1D = {rs1flag,instrD[24:20]};
-    assign rdD = {rdflag,instrD[11:7]};
-
-    // controler
-    single_cycle_control controler(.opcode(opcodeD),
-                                   .funct3(funct3D),
-                                   .funct7(funct7D),
-                                   .memtoreg(memtoregD),
-                                   .memwrite(memwriteD),
-                                   .memread(memreadD),
-                                   .imemwrite(imemwriteD),
-                                   .branchjump(branchjumpD),
-                                   .aluop(aluopD),
-                                   .fpuop(fpuopD),
-                                   .src0(alusrc0D),
-                                   .src1(alusrc1D),
-                                   .regwrite(regwriteD),
-                                   .aluorfpu(aluorfpuD),
-                                   .rs0flag(rs0flag),
-                                   .rs1flag(rs1flag),
-                                   .rdflag(rdflag));
-
-    // imm
-    immgen immgen(.instr(instrD),
-                  .imm(immD));
+                        .we(imemwrite), 
+                        .raddr(imemraddr[11:2]),
+                        .waddr(imemwaddr[11:2]),  
+                        .di(imemwdata),
+                        .dout(imemrdata));   
 
     // reg file
     register_file regfile(.clk(clk),
                           .rstn(rstn),
-                          .raddr0(rs0D),
-                          .raddr1(rs1D),
-                          .we(regwriteW),
-                          .waddr(rdW),
-                          .wdata(regwdataW),
-                          .rdata0(rdata0D),
-                          .rdata1(rdata1D));
-        
-    // ----- 3 execute stage -----
-    mux4 src0mux4(.data0(rdata0E),
-                  .data1(32'b0),
-                  .data2(pcE),
-                  .data3(32'b0),
-                  .s(alusrc0E),
-                  .data(src0E));
+                          .raddr0(rs0),
+                          .raddr1(rs1),
+                          .we(regwrite),
+                          .waddr(rd),
+                          .wdata(regwdata),
+                          .rdata0(rs0data),
+                          .rdata1(rs1data));
 
-    mux4 src1mux4(.data0(rdata1E),
-                  .data1(32'b100),
-                  .data2(immE),
-                  .data3(32'b0),
-                  .s(alusrc1E),
-                  .data(src1E));
+    // hazard unit 
+    hazard_unit hazard_unit(.rs0D(rs0),
+                            .rs1D(rs1),
+                            .rdE(rdE),
+                            .rdM(rdM),
+                            .regwriteE(regwriteE),
+                            .memreadE(memreadE),
+                            .regwriteM(regwriteM),
+                            .forward0(forward0),
+                            .forward1(forward1),
+                            .lwstall(lwstall));
+
+    // branch jump unit
+    // stall && flush  signal
+    always @(posedge clk) begin
+        if (~rstn)  begin
+            pc <= 32'b0;
+        end else begin
+            if (fetch_enable) begin
+                pc <= pc + 32'b100;
+            end else if (branchjump_miss) begin
+                pc <= pcnext + 32'b100;
+            end
+        end
+    end
     
-    // alu
-    alu alu(.src0(src0E),
-            .src1(src1E),
-            .aluop(aluopE),
-            .flag(flagE),
-            .result(aluresultE));
+    // stall & flush
+    assign fetch_enable = ~lwstall && ~branchjump_miss;
+    assign fetch_rstn = 1'b1;
 
-    // fpu
-    fpu fpu(.src0(src0E),
-            .src1(src1E),
-            .fpuop(fpuopE),
-            .result(fpuresultE));
+    assign decode_enable = ~lwstall;
+    assign decode_rstn = ~(branchjump_miss);
 
-    // next pc
-    logic [31:0] pcjalrE;
-    assign pc4E = pcE + 32'b100; 
-    assign pcimmE = pcE + immE; 
-    assign pcjalrE = rdata0E + immE;
-    pc_control pc_control(.branchjump(branchjumpE),
-                          .flag(flagE),
-                          .pc4(pc4E),
-                          .pcimm(pcimmE),
-                          .pcjalr(pcjalrE),
-                          .pcnext(pcnextE));
+    assign exec_enable = ~lwstall;
+    assign exec_rstn = ~(branchjump_miss || lwstall);
 
-    assign memwdataE = rdata1E;
+    assign memory_enable = 1'b1;
+    assign memory_rstn = 1'b1;
 
-    // ----- 4 Memory stage -----
-    // imem
-    assign imemwriteM = imemwriteE;
-    assign aluresultM = aluresultE;
-    assign memwdataM = memwdataE;
-    // dmem
-    assign memwriteM = memwriteE;
-    ram_block_data dmem(.clk(clk),
-                        .we(memwriteM),
-                        .addr(aluresultM[11:2]),
-                        .di(memwdataM),
-                        .dout(memrdataM));
+    assign write_enable = 1'b1;
+    assign write_rstn = 1'b1;
 
-    mux2 resultmux2(.data0(aluresultM),
-                    .data1(fpuresultM),
-                    .s(aluorfpuM),
-                    .data(resultM));
-    
-    // ----- 5 writeback stage -----
-    mux2 regwdatamux2(.data0(resultW),
-                      .data1(memdataW),
-                      .s(memtoregW),
-                      .data(regwdataW));
-
-    
 endmodule

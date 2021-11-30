@@ -41,6 +41,7 @@ module ram_block_data(
 endmodule
 
 
+
 module ram_block_inst(
     input clk,
     input we,
@@ -67,5 +68,5 @@ module ram_block_inst(
         dout2 <= ram[raddr];
     end
 
-    assign dout = (raddr == waddr ? dout1 : dout2);
+    assign dout = ((raddr == waddr && we) ? dout1 : dout2);
 endmodule
