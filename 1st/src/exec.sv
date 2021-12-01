@@ -50,7 +50,9 @@ module exec
 
     // fpu
     logic [31:0] fpuresult;
-    fpu fpu(.src0(src0),
+    fpu fpu(.clk(clk),
+            .rstn(rstn),
+            .src0(src0),
             .src1(src1),
             .fpuop(inst.fpuop),
             .result(fpuresult));

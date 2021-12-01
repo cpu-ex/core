@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
@@ -21,8 +21,10 @@
 
 
 module fpu(
-    input wire [31:0] src0,
-    input wire [31:0] src1,
+    input wire clk,
+    input wire rstn,
+    /* verilator lint_off UNUSED */ input wire [31:0] src0,
+    /* verilator lint_off UNUSED */ input wire [31:0] src1,
     input wire [3:0] fpuop, 
     output logic [31:0] result
     );
@@ -31,10 +33,21 @@ module fpu(
                  fsgnj_res, fsgnjn_res, fsgnjx_res, 
                  feq_res, fle_res, flt_res,
                  fcvtws_res, fcvtsw_res; 
-    
-    // fpu's module
-    // fadd fadd_0(src0, src1, fadd_res); 
-    // ...
+    logic overflow;
+
+    fadd fadd(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fadd_res), .overflow(overflow));
+    fsub fsub(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsub_res), .ovf(overflow));
+    fmul fmul(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fmul_res));
+    // fdiv
+    // fsqrt
+    fsgnj fsgnj(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnj_res));
+    fsgnjn fsgnjn(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnjn_res));
+    fsgnjx fsgnjx(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnjx_res));
+    feq feq(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(feq_res));
+    fle fle(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fle_res));
+    flt flt(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(flt_res));
+    fcvtsw fcvtsw(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtsw_res));
+    fcvtws fcvtws(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtws_res));
 
     always_comb begin
         case (fpuop)

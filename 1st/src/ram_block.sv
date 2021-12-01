@@ -20,8 +20,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module ram_block_data(
-    input clk,
-    input we,
+    input wire clk,
+    input wire we,
     input [9:0] addr,
     input [31:0] di,
     output reg [31:0] dout 
@@ -43,8 +43,8 @@ endmodule
 
 
 module ram_block_inst(
-    input clk,
-    input we,
+    input wire clk,
+    input wire we,
     input [9:0] raddr,
     input [9:0] waddr,
     input [31:0] di,
