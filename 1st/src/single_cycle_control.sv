@@ -42,7 +42,7 @@ module single_cycle_control(
     //...
     );
     
-    // RV32IMF
+    // RV32IF
     // opcode
     localparam LUI    = 7'b0110111; // lui
     localparam AUIPC  = 7'b0010111; // auipc
@@ -55,10 +55,11 @@ module single_cycle_control(
     localparam CALC   = 7'b0110011; // add, sub, slt, sll, srl, sra, xor, and, or, mul, div
     localparam FLOAD  = 7'b0000111; // fl
     localparam FSTORE = 7'b0100111; // fs
-    localparam F      = 7'b1010011; // fadd, fsub, fmul, fdiv, fsqrt, fsgnj, fsgnjn, fsgnjx, feq, fle, flt, fcvt.s.w, fcvt.w.s  
+    localparam F      = 7'b1010011; // fadd, fsub, fmul, fdiv, fsqrt, fsgnj, fsgnjn, fsgnjx, 
+                                    // feq, fle, flt, fcvt.s.w, fcvt.w.s, fmv.w.x, fmv.x.w
     
 
-    // RV32IM
+    // RV32I
     // funct3
     localparam BEQ = 3'b000;
     localparam BNE = 3'b001;
@@ -93,6 +94,8 @@ module single_cycle_control(
     localparam FCMP   = 7'b1010000; // -> funct3
     localparam FCVTWS = 7'b1100000;
     localparam FCVTSW = 7'b1101000;
+    localparam FMVWX  = 7'b1111000;
+    localparam FMVXW  = 7'b1110000;
 
     // funct3
     localparam FSGNJ  = 3'b000;
@@ -112,7 +115,8 @@ module single_cycle_control(
           i_fadd, i_fsub, i_fmul, i_fdiv, i_fsqrt, 
           i_fsgnj, i_fsgnjn, i_fsgnjx, 
           i_feq, i_fle, i_flt, 
-          i_fcvtws, i_fcvtsw;
+          i_fcvtws, i_fcvtsw,
+          i_fmvwx, i_fmvxw;
 
     assign i_lui = (opcode == LUI);
     assign i_auipc = (opcode == AUIPC);
@@ -164,6 +168,8 @@ module single_cycle_control(
     assign i_flt = (opcode == F && funct7 == FCMP && funct3 == FLT);
     assign i_fcvtws = (opcode == F && funct7 == FCVTWS);
     assign i_fcvtsw = (opcode == F && funct7 == FCVTSW);
+    assign i_fmvwx = (opcode == F && funct7 == FMVWX);
+    assign i_fmvxw = (opcode == F && funct7 == FMVXW);
 
     // memtoreg
     // 1'b0 -> result (alu or fpu)
@@ -264,8 +270,10 @@ module single_cycle_control(
     // 2'b00 -> rdata1(from register file)
     // 2'b01 -> 4
     // 2'b10 -> imm
+    // 2'b11 -> 0
     assign src1 = (i_jal || i_jalr) ? 2'b01:
                   (i_auipc || i_lui || i_lw || i_sw || i_swi || opcode == CALCI || i_fload || i_fstore) ? 2'b10:
+                  (i_fmvwx || i_fmvxw ) ? 2'b11:
                   2'b00;
 
     // regwrite
@@ -276,12 +284,12 @@ module single_cycle_control(
     // aluorfpu
     // 1'b0 -> aluresult 
     // 1'b1 -> fpuresult
-    assign aluorfpu = opcode == F;
+    assign aluorfpu = (opcode == F) && ~i_fmvxw && ~i_fmvwx;
 
     // rs0flag
     // 1'b0 -> integer register
     // 1'b1 -> floating point register
-    assign rs0flag = opcode == F && ~i_fcvtws;
+    assign rs0flag = opcode == F && ~i_fcvtsw && ~i_fmvwx;
 
     // rs1flag
     // 1'b0 -> integer register
@@ -291,6 +299,6 @@ module single_cycle_control(
     // rdflag
     // 1'b0 -> integer register
     // 1'b1 -> floating point register
-    assign rdflag = opcode == F && ~i_fcvtsw;
+    assign rdflag = opcode == F && ~i_fcvtws && ~i_fmvxw;
 
 endmodule
