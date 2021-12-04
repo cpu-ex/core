@@ -38,8 +38,8 @@ module fpu(
     fadd fadd(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fadd_res), .overflow(overflow));
     fsub fsub(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsub_res), .ovf(overflow));
     fmul fmul(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fmul_res));
-    // fdiv
-    // fsqrt
+    fdiv fdiv(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fdiv_res));
+    fsqrt fsqrt(.clk(clk), .rstn(rstn), .x(src0), .y(fsqrt_res));
     fsgnj fsgnj(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnj_res));
     fsgnjn fsgnjn(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnjn_res));
     fsgnjx fsgnjx(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnjx_res));
@@ -59,9 +59,9 @@ module fpu(
             4'b0101: result = fsgnj_res; 
             4'b0110: result = fsgnjn_res; 
             4'b0111: result = fsgnjx_res; 
-            4'b1000: result = feq_res; 
-            4'b1001: result = fle_res; 
-            4'b1010: result = flt_res; 
+            4'b1000: result = {31'b0, feq_res}; 
+            4'b1001: result = {31'b0, fle_res}; 
+            4'b1010: result = {31'b0, flt_res}; 
             4'b1011: result = fcvtws_res; 
             4'b1100: result = fcvtsw_res;
             default: result = 32'b0; 
