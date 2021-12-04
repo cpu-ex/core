@@ -18,7 +18,8 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+`default_nettype none
+`timescale 1ns / 1ps
 
 module immgen(
     input wire [31:0] instr,
@@ -65,3 +66,4 @@ module immgen(
     end
     
 endmodule
+`default_nettype wire

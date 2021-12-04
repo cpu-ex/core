@@ -1,3 +1,4 @@
+`default_nettype none
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -51,3 +52,4 @@ module register_file(
 
 endmodule
 
+`default_nettype wire

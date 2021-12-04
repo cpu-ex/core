@@ -1,3 +1,4 @@
+`default_nettype none
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -72,3 +73,5 @@ module flope
     end
     
 endmodule
+
+`default_nettype wire

@@ -1,3 +1,4 @@
+`default_nettype none
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -40,3 +41,4 @@ module pc_control (
                     pc4; // (flag == 1'b0)
 
 endmodule
+`default_nettype wire

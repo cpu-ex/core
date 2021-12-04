@@ -18,7 +18,8 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+`default_nettype none
+`timescale 1ns / 1ps
 
 module fpu(
     input wire clk,
@@ -30,13 +31,14 @@ module fpu(
     );
     
     logic [31:0] fadd_res, fsub_res, fmul_res, fdiv_res, fsqrt_res,
-                 fsgnj_res, fsgnjn_res, fsgnjx_res, 
-                 feq_res, fle_res, flt_res,
+                 fsgnj_res, fsgnjn_res, fsgnjx_res,
                  fcvtws_res, fcvtsw_res; 
-    logic overflow;
 
-    fadd fadd(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fadd_res), .overflow(overflow));
-    fsub fsub(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsub_res), .ovf(overflow));
+    logic  feq_res, fle_res, flt_res;                 
+    logic ovf0, ovf1;
+
+    fadd fadd(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fadd_res), .overflow(ovf0));
+    fsub fsub(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsub_res), .ovf(ovf1));
     fmul fmul(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fmul_res));
     fdiv fdiv(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fdiv_res));
     fsqrt fsqrt(.clk(clk), .rstn(rstn), .x(src0), .y(fsqrt_res));
@@ -68,3 +70,4 @@ module fpu(
         endcase
     end
 endmodule
+`default_nettype wire

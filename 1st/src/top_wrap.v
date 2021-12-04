@@ -1,3 +1,4 @@
+`default_nettype none
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -24,8 +25,8 @@ module top_wrap #(CLK_PER_HALF_BIT = 86)(
     input wire clk,
     input wire clk_uart,
     input wire rstn,
-    input rxd,
-    output txd
+    input wire rxd,
+    output wire txd
     );
 
     top #(CLK_PER_HALF_BIT) top(.clk(clk),
@@ -35,3 +36,4 @@ module top_wrap #(CLK_PER_HALF_BIT = 86)(
                                 .txd(txd));
                                 
 endmodule
+`default_nettype wire

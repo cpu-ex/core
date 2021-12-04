@@ -1,5 +1,6 @@
+`default_nettype none
+`timescale 1ns / 1ps
 `include "def.sv"
-
 
 module decode
    (/* verilator lint_off UNUSED */ input wire clk,
@@ -9,15 +10,15 @@ module decode
 
     output logic [5:0] rs0,
     output logic [5:0] rs1,
-    input logic [31:0] rs0data,
-    input logic [31:0] rs1data,
-    input logic [31:0] regwdataE,
-    input logic [31:0] regwdataM,
-    input logic [1:0] forward0,
-    input logic [1:0] forward1,
+    input wire [31:0] rs0data,
+    input wire [31:0] rs1data,
+    input wire [31:0] regwdataE,
+    input wire [31:0] regwdataM,
+    input wire [1:0] forward0,
+    input wire [1:0] forward1,
 
-    input logic [31:0] pc,
-    input logic [31:0] instr,
+    input wire [31:0] pc,
+    input wire [31:0] instr,
 
     output Inst inst,
     output logic [31:0] rdata0,
@@ -80,3 +81,4 @@ module decode
     assign fin = 1'b1;
 
 endmodule
+`default_nettype wire

@@ -17,7 +17,8 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+`default_nettype none
+`timescale 1ns / 1ps
 
 module alu(
     input wire [31:0] src0,
@@ -49,3 +50,4 @@ module alu(
 
     assign flag = (result == 0);
 endmodule
+`default_nettype wire

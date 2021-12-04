@@ -1,4 +1,5 @@
-
+`default_nettype none
+`timescale 1ns / 1ps
 `include "def.sv"
 
 module write
@@ -12,7 +13,7 @@ module write
     output logic [5:0] rd,
 
     input Inst inst,
-    input logic [31:0] regwdata_in
+    input wire [31:0] regwdata_in
    );
 
     assign regwdata = regwdata_in;
@@ -20,3 +21,5 @@ module write
     assign rd = inst.rd;
     assign fin = 1'b1;
 endmodule
+
+`default_nettype wire

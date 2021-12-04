@@ -1,3 +1,4 @@
+`default_nettype none
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -45,7 +46,7 @@ module uart_rx_unit #(CLK_PER_HALF_BIT = 86) (
 
     // fifo generator (ip core)
     // First Word Fall Through
-    fifo_generator_5 fifo (
+    fifo_generator_1 fifo (
         .rst(~rstn),          // input wire rst
         .wr_clk(clk_uart),    // input wire wr_clk
         .rd_clk(clk),         // input wire rd_clk
@@ -59,3 +60,4 @@ module uart_rx_unit #(CLK_PER_HALF_BIT = 86) (
 
     // don't manage error when fifo is empty
 endmodule
+`default_nettype wire

@@ -1,3 +1,4 @@
+`default_nettype none
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -26,7 +27,7 @@ module uart_tx_unit #(CLK_PER_HALF_BIT = 86)(
                       input wire rstn,
                       output wire txd,
                       input wire wr_en,
-                      input logic [7:0] din,
+                      input wire [7:0] din,
                       output wire full
                      );
 
@@ -44,7 +45,7 @@ module uart_tx_unit #(CLK_PER_HALF_BIT = 86)(
     logic rd_en, empty;
 
     // fifo generator (ip core)
-    fifo_generator_4 fifo (
+    fifo_generator_0 fifo (
         .rst(~rstn),       // input wire rst
         .wr_clk(clk),      // input wire wr_clk
         .rd_clk(clk_uart), // input wire rd_clk
@@ -90,3 +91,4 @@ module uart_tx_unit #(CLK_PER_HALF_BIT = 86)(
 
     // don't manage error when fifo is full
 endmodule
+`default_nettype wire

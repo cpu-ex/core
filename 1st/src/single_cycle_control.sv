@@ -18,7 +18,8 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+`default_nettype none
+`timescale 1ns / 1ps
 
 module single_cycle_control(
     input wire [6:0] opcode, // [6,0]
@@ -302,3 +303,4 @@ module single_cycle_control(
     assign rdflag = opcode == F && ~i_fcvtws && ~i_fmvxw;
 
 endmodule
+`default_nettype wire

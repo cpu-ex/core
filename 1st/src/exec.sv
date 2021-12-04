@@ -1,4 +1,5 @@
-
+`default_nettype none
+`timescale 1ns / 1ps
 `include "def.sv"
 
 module exec
@@ -12,15 +13,15 @@ module exec
     output logic memread,
     output logic branchjump_miss,
 
-    input [31:0] rdata0,
-    input [31:0] rdata1,
+    input wire [31:0] rdata0,
+    input wire [31:0] rdata1,
     input Inst inst,
 
-    output [31:0] pcnext,
+    output logic [31:0] pcnext,
     output Inst inst_out,
-    output [31:0] aluresult,
-    output [31:0] result,
-    output [31:0] rdata1_out);
+    output logic [31:0] aluresult,
+    output logic [31:0] result,
+    output logic [31:0] rdata1_out);
 
     logic [31:0] src0;
     logic [31:0] src1;
@@ -82,3 +83,4 @@ module exec
     assign fin = 1'b1;
 
 endmodule
+`default_nettype wire

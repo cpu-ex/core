@@ -1,14 +1,15 @@
-
+`default_nettype none
+`timescale 1ns / 1ps
 
 module hazard_unit
    (
-    input logic [5:0] rs0D,
-    input logic [5:0] rs1D,
-    input logic [5:0] rdE,
-    input logic [5:0] rdM,
-    input logic regwriteE,
-    input logic memreadE,
-    input logic regwriteM,
+    input wire [5:0] rs0D,
+    input wire [5:0] rs1D,
+    input wire [5:0] rdE,
+    input wire [5:0] rdM,
+    input wire regwriteE,
+    input wire memreadE,
+    input wire regwriteM,
 
     output logic [1:0] forward0,
     output logic [1:0] forward1,
@@ -25,3 +26,4 @@ module hazard_unit
 
     assign lwstall = (rs0D == rdE || rs1D == rdE) && memreadE;
 endmodule
+`default_nettype wire

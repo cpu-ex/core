@@ -1,4 +1,5 @@
-
+`default_nettype none
+`timescale 1ns / 1ps
 
 module fetch
    (input wire clk,
@@ -7,12 +8,12 @@ module fetch
     output wire fin,
 
     output logic [31:0] imemraddr,
-    input logic [31:0] imemrdata,
-    input logic branchjump_miss,
-    input logic lwstall,
+    input wire [31:0] imemrdata,
+    input wire branchjump_miss,
+    input wire lwstall,
 
-    input logic [31:0] pc,
-    input logic [31:0] pcnext,
+    input wire [31:0] pc,
+    input wire [31:0] pcnext,
 
     output logic [31:0] pc_out,
     output logic [31:0] instr);
@@ -32,3 +33,4 @@ module fetch
     assign fin = 1'b1;
 
 endmodule
+`default_nettype wire

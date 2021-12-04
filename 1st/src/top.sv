@@ -1,3 +1,4 @@
+`default_nettype none
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -24,8 +25,8 @@ module top #(CLK_PER_HALF_BIT = 86)(
     input wire clk,
     input wire clk_uart,
     input wire rstn,
-    input rxd,
-    output txd
+    input wire rxd,
+    output wire txd
     );
 
     logic full, empty, rd_en, wr_en;
@@ -57,3 +58,4 @@ module top #(CLK_PER_HALF_BIT = 86)(
                                             .empty(empty));
 
 endmodule
+`default_nettype wire

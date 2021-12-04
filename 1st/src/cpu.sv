@@ -17,8 +17,9 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`default_nettype none
+`timescale 1ns / 1ps
 `include "def.sv"
-
 
 module cpu(
     input wire clk,
@@ -292,3 +293,4 @@ module cpu(
     assign write_rstn = 1'b1;
 
 endmodule
+`default_nettype wire

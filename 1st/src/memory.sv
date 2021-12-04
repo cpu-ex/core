@@ -1,4 +1,5 @@
-
+`default_nettype none
+`timescale 1ns / 1ps
 `include "def.sv"
 
 module memory
@@ -14,12 +15,12 @@ module memory
     output logic [31:0] imemwdata,
 
     input Inst inst,
-    input logic [31:0] aluresult,
-    input logic [31:0] result,
-    input logic [31:0] rdata1,
-    input logic [7:0] uart_rx_data,
-    input logic empty,
-    input logic full,
+    input wire [31:0] aluresult,
+    input wire [31:0] result,
+    input wire [31:0] rdata1,
+    input wire [7:0] uart_rx_data,
+    input wire empty,
+    input wire full,
 
     output Inst inst_out,
     output logic [31:0] regwdata,
@@ -79,3 +80,4 @@ module memory
 
 
 endmodule
+`default_nettype wire
