@@ -290,17 +290,17 @@ module single_cycle_control(
     // rs0flag
     // 1'b0 -> integer register
     // 1'b1 -> floating point register
-    assign rs0flag = opcode == F && ~i_fcvtsw && ~i_fmvwx;
+    assign rs0flag = (opcode == F) && ~i_fcvtsw && ~i_fmvwx;
 
     // rs1flag
     // 1'b0 -> integer register
     // 1'b1 -> floating point register
-    assign rs1flag = opcode == F || i_fstore;
+    assign rs1flag = (opcode == F) || i_fstore;
 
     // rdflag
     // 1'b0 -> integer register
     // 1'b1 -> floating point register
-    assign rdflag = opcode == F && ~i_fcvtws && ~i_fmvxw;
+    assign rdflag = ((opcode == F) && ~i_fcvtws && ~i_fmvxw && ~i_feq && ~i_fle && ~i_flt) || i_fload;
 
 endmodule
 `default_nettype wire
