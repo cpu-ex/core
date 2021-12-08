@@ -26,9 +26,9 @@ module fetch
         end
     end
 
-    assign imemraddr = lwstall ? pc_out :
-                       branchjump_miss ? pcnext :
-                       pc;
+    assign imemraddr = enable ? pc :              // ~stall && ~flush
+                       branchjump_miss ? pcnext : // branch jump miss
+                       pc_out;                    // otherwise -> stall
     assign instr = imemrdata;
     assign fin = 1'b1;
 

@@ -268,23 +268,29 @@ module cpu(
         if (~rstn)  begin
             pc <= 32'b0;
         end else begin
-            if (fetch_enable) begin
+            if (fetch_enable) begin // ~stall && ~flush
                 pc <= pc + 32'b100;
-            end else if (branchjump_miss) begin
+            end else if (branchjump_miss) begin // branchjump miss
                 pc <= pcnext + 32'b100;
-            end
+            end 
+            // othewise -> stall
         end
     end
     
     // stall & flush
     assign fetch_enable = ~lwstall && ~branchjump_miss;
     assign fetch_rstn = 1'b1;
+    // if add fpustall or memorystall later
+    // assing fetch_enable = ~lwstall && ~branchjump_miss && ~fpustall && ~memorystall
 
-    assign decode_enable = ~lwstall;
-    assign decode_rstn = ~(branchjump_miss);
+    assign decode_enable = ~lwstall && ~branchjump_miss;
+    assign decode_rstn = ~branchjump_miss;
+    // if add fpustall or memorystall later
+    // assing decode_enable = ~lwstall && ~branchjump_miss && ~fpustall && ~memorystall
 
-    assign exec_enable = ~lwstall;
+    assign exec_enable = ~lwstall && ~branchjump_miss;
     assign exec_rstn = ~(branchjump_miss || lwstall);
+    // ?
 
     assign memory_enable = 1'b1;
     assign memory_rstn = 1'b1;
