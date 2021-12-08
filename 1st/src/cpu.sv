@@ -278,24 +278,24 @@ module cpu(
     end
     
     // stall & flush
-    assign fetch_enable = ~lwstall && ~branchjump_miss && exec_fin;
+    assign fetch_enable = ~lwstall && ~branchjump_miss && exec_fin && memory_fin;
     assign fetch_rstn = 1'b1;
     // if add fpustall or memorystall later
-    // assing fetch_enable = ~lwstall && ~branchjump_miss && ~fpustall && ~memorystall
+    // assing fetch_enable = ~lwstall && ~branchjump_miss && ~exec_fin && ~memory_fin
 
-    assign decode_enable = ~lwstall && ~branchjump_miss && exec_fin;
+    assign decode_enable = ~lwstall && ~branchjump_miss && exec_fin && memory_fin;
     assign decode_rstn = ~branchjump_miss;
     // if add fpustall or memorystall later
-    // assing decode_enable = ~lwstall && ~branchjump_miss && ~fpustall && ~memorystall
+    // assing decode_enable = ~lwstall && ~branchjump_miss && ~exec_fin && ~memory_fin
 
-    assign exec_enable = ~lwstall && ~branchjump_miss && exec_fin;
+    assign exec_enable = ~lwstall && ~branchjump_miss && exec_fin && memory_fin;
     assign exec_rstn = ~(branchjump_miss || lwstall);
     // ?
 
-    assign memory_enable = 1'b1; // assign memory_enable = exec_fin?
+    assign memory_enable = exec_fin && memory_fin; //?
     assign memory_rstn = 1'b1;
 
-    assign write_enable = 1'b1;
+    assign write_enable = memory_fin;
     assign write_rstn = 1'b1;
 
 endmodule

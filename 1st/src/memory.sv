@@ -49,6 +49,40 @@ module memory
         end
     end 
 
+    /* ----- data memory ----- */
+    // WIP
+    // memory_interface(.clk(clk),                    // wire
+    //                  .rstn(rstn),                  // wire
+    //                  .addr(addr),                  // wire [31:0] 
+    //                  .data_in(data_in),            // wire [31:0] write data 
+    //                  .write_enable(write_enable),  // wire
+    //                  .read_enable(read_enable),    // wire
+    //                  .data_out(data_out),          // wire [31:0] read data 
+    //                  .ready(ready),                // wire        ready == 1'b1 <-> core can assert write_enable or read_enable
+    //                  .valid(valid));               // wire        valid == 1'b1 <-> memory finish load or store
+    // localparam s_idle = 1'd0;
+    // localparam s_wait = 1'd1;
+    // logic state;
+    // logic [31:0] addr;
+    // logic [31:0] wdata;
+    // logic [31:0] rdata;
+    // logic write_enable;
+    // logic read_enable;
+    // logic ready;
+    // logic valid;
+    // always_ff @(posedge clk) begin
+    //     if (~rstn) begin
+    //         state <= s_idle;
+    //     end else begin
+    //         if (state == s_idle) begin
+
+    //         end else if (state == s_wait) begin
+
+    //         end
+    //     end
+    // end
+    /* ----- data memory ----- */
+
     logic [31:0] memrdata_;
     ram_block_data dmem(.clk(clk),
                         .we(inst.memwrite),
