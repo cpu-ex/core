@@ -243,7 +243,7 @@ module single_cycle_control(
     // 4'b1010 -> flt
     // 4'b1011 -> fcvtws
     // 4'b1100 -> fcvtsw
-    // default -> 
+    // 4'b1101 -> default
     assign fpuop = i_fadd ? 4'b0000:
                    i_fsub ? 4'b0001:
                    i_fmul ? 4'b0010:
@@ -257,7 +257,7 @@ module single_cycle_control(
                    i_flt ? 4'b1010:
                    i_fcvtws ? 4'b1011:
                    i_fcvtsw ? 4'b1100:
-                   4'b0000;
+                   4'b1101;
 
     // src0
     // 2'b00 -> rdata0(from register file)

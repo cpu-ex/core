@@ -27,7 +27,8 @@ module fpu(
     /* verilator lint_off UNUSED */ input wire [31:0] src0,
     /* verilator lint_off UNUSED */ input wire [31:0] src1,
     input wire [3:0] fpuop, 
-    output logic [31:0] result
+    output logic [31:0] result,
+    output wire fin
     );
     
     logic [31:0] fadd_res, fsub_res, fmul_res, fdiv_res, fsqrt_res,
@@ -69,5 +70,8 @@ module fpu(
             default: result = 32'b0; 
         endcase
     end
+
+    assign fin = 1'b1;
+    // fin == 1'b1 <-> result is valid
 endmodule
 `default_nettype wire

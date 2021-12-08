@@ -51,12 +51,14 @@ module exec
 
     // fpu
     logic [31:0] fpuresult;
+    logic fpu_fin;
     fpu fpu(.clk(clk),
             .rstn(rstn),
             .src0(src0),
             .src1(src1),
             .fpuop(inst.fpuop),
-            .result(fpuresult));
+            .result(fpuresult),
+            .fin(fpu_fin));
 
     mux2 resulumux2(.data0(aluresult_),
                     .data1(fpuresult),
@@ -80,7 +82,7 @@ module exec
     assign aluresult = aluresult_;
     assign inst_out = inst;
     assign rdata1_out = rdata1;
-    assign fin = 1'b1;
+    assign fin = fpu_fin;
 
 endmodule
 `default_nettype wire
