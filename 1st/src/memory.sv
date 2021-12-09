@@ -78,7 +78,7 @@ module memory
     // assign read_enable = miss ? 1'b0:
     //                      (inst.memread && (addr[9:0] != UART_IN_ADDR) && (addr[9:0] != UART_IN_VALID_ADDR) && (addr[9:0] != UART_OUT_VALID_ADDR));
     // assign memrdata_ = rdata;
-    
+
     // 1 idle -> lw or sw
     // 1 idle -> idle
     // 2 lw or sw (hit) -> idle
@@ -87,14 +87,11 @@ module memory
     // 3 lw or sw (miss) -> lw or sw
     /* ----- data memory ----- */
 
-    localparam UART_IN_ADDR        = 10'b0000000000;
-    localparam UART_IN_VALID_ADDR  = 10'b0000000100;
-    localparam UART_OUT_VALID_ADDR = 10'b0000001000;
-    localparam UART_OUT_ADDR       = 10'b0000001100;
+    localparam UART_ADDR = 10'b0000000000;
 
     logic write_enable;
     logic [31:0] memrdata_;
-    assign write_enable = inst.memwrite && (aluresult[9:0] != UART_OUT_ADDR);
+    assign write_enable = inst.memwrite && (aluresult[9:0] != UART_ADDR);
     ram_block_data dmem(.clk(clk),
                         .we(write_enable),
                         .addr(aluresult[11:2]),
@@ -102,12 +99,10 @@ module memory
                         .dout(memrdata_));
 
     logic [31:0] memrdata;
-    assign memrdata = aluresult_EM_reg[9:0] == UART_IN_ADDR        ? {24'b0,uart_rx_data}:
-                      aluresult_EM_reg[9:0] == UART_IN_VALID_ADDR  ? {31'b0,~empty}:
-                      aluresult_EM_reg[9:0] == UART_OUT_VALID_ADDR ? {31'b0,~full}:
+    assign memrdata = aluresult_EM_reg[9:0] == UART_ADDR ? {24'b0,uart_rx_data}:
                       memrdata_;
-    assign uart_rd_en = inst_EM_reg.memread && aluresult_EM_reg[9:0] == UART_IN_ADDR;
-    assign uart_wr_en = inst_EM_reg.memwrite && aluresult_EM_reg[9:0] == UART_OUT_ADDR;
+    assign uart_rd_en = inst_EM_reg.memread  && aluresult_EM_reg[9:0] == UART_ADDR;
+    assign uart_wr_en = inst_EM_reg.memwrite && aluresult_EM_reg[9:0] == UART_ADDR;
     assign uart_tx_data = rdata1_EM_reg[7:0];
 
     mux2 regwdatamux2(.data0(result_EM_reg),
@@ -121,7 +116,7 @@ module memory
     assign imemwaddr = aluresult_EM_reg;
     assign imemwdata = rdata1_EM_reg;
     assign inst_out = inst_EM_reg;
-    assign fin = 1'b1; // assign fin = ~miss; assumu cache idle -> miss = 1'b0
+    assign fin = ~(uart_rd_en && empty) && ~(uart_wr_en && full); // assign fin &= ~miss; assumu cache idle -> miss = 1'b0
 
 
 endmodule
