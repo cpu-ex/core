@@ -50,53 +50,46 @@ module memory
     end 
 
     /* ----- data memory ----- */
-    // WIP
-    // memory_interface(.clk(clk),                    // input wire
-    //                  .rstn(rstn),                  // input wire
-    //                  .addr(addr),                  // input wire [31:0] 
-    //                  .data_in(wdata),              // input wire [31:0] write data 
-    //                  .write_enable(write_enable),  // input wire
-    //                  .read_enable(read_enable),    // input wire
-    //                  .data_out(rdata),             // output wire [31:0] read data 
-    //                  .ready(ready),                // output wire        ready == 1'b1 <-> core can assert write_enable or read_enable
-    //                  .miss(miss));                 // output wire        miss == 1'b0 <-> memory finish load or store
-    //                                                //                    miss == 1'b1 <-> core must wait memory
-    // logic [31:0] addr;
-    // logic [31:0] wdata; // data_in
-    // logic [31:0] rdata; // data_out
-    // logic write_enable;
-    // logic read_enable;
-    // logic ready;
-    // logic miss;
+    localparam UART_ADDR = 10'b0000000000;
 
-    // assign addr = miss ? aluresult_EM_reg:
-    //               aluresult;
-    // assign wdata = miss ? rdata1_EM_reg:
-    //                rdata1;
-    // assign write_enable = miss ? 1'b0:
-    //                       (inst.memwrite && (addr[9:0] != UART_OUT_ADDR));
-    // assign read_enable = miss ? 1'b0:
-    //                      (inst.memread && (addr[9:0] != UART_IN_ADDR) && (addr[9:0] != UART_IN_VALID_ADDR) && (addr[9:0] != UART_OUT_VALID_ADDR));
-    // assign memrdata_ = rdata;
+    logic [31:0] addr;
+    logic [31:0] wdata; // data_in
+    logic [31:0] rdata; // data_out
+    logic write_enable;
+    logic read_enable;
+    logic ready;
+    logic miss;
+    logic [31:0] memrdata_;
 
+    assign addr = miss ? aluresult_EM_reg:
+                  aluresult;
+    assign wdata = miss ? rdata1_EM_reg:
+                   rdata1;
+    assign write_enable = miss ? 1'b0:
+                          (inst.memwrite && (addr[9:0] != UART_ADDR));
+    assign read_enable = miss ? 1'b0:
+                         (inst.memread && (addr[9:0] != UART_ADDR));
+    assign memrdata_ = rdata;
+
+    memory_interface dmem(.clk(clk),                   // input wire
+                          .rstn(rstn),                 // input wire 
+                          .addr(addr),                 // input wire [31:0]
+                          .data_in(wdata),             // input wire [31:0] write data  
+                          .write_enable(write_enable), // input wire
+                          .read_enable(read_enable),   // input wire
+                          .data_out(rdata),            // output wire [31:0] read data
+                          .ready(ready),               // output wire        ready == 1'b1 <-> core can assert write_enable or read_enable 
+                          .miss(miss));                // output wire        miss == 1'b0 <-> memory finish load or store
+                                                       //                    miss == 1'b1 <-> core must wait memory
+                          
     // 1 idle -> lw or sw
     // 1 idle -> idle
     // 2 lw or sw (hit) -> idle
     // 2 lw or sw (hit) -> lw or sw
     // 3 lw or sw (miss) -> idle
     // 3 lw or sw (miss) -> lw or sw
+    // don't forget imem swi !(if imem stall , I have to change code)
     /* ----- data memory ----- */
-
-    localparam UART_ADDR = 10'b0000000000;
-
-    logic write_enable;
-    logic [31:0] memrdata_;
-    assign write_enable = inst.memwrite && (aluresult[9:0] != UART_ADDR);
-    ram_block_data dmem(.clk(clk),
-                        .we(write_enable),
-                        .addr(aluresult[11:2]),
-                        .di(rdata1),
-                        .dout(memrdata_));
 
     logic [31:0] memrdata;
     assign memrdata = aluresult_EM_reg[9:0] == UART_ADDR ? {24'b0,uart_rx_data}:
@@ -116,8 +109,33 @@ module memory
     assign imemwaddr = aluresult_EM_reg;
     assign imemwdata = rdata1_EM_reg;
     assign inst_out = inst_EM_reg;
-    assign fin = ~(uart_rd_en && empty) && ~(uart_wr_en && full); // assign fin &= ~miss; assumu cache idle -> miss = 1'b0
+    assign fin = ~(uart_rd_en && empty) && ~(uart_wr_en && full) && ~miss;
 
 
 endmodule
+
+// temporary memory 
+// always cache hit
+module memory_interface
+   (input wire clk,
+    input wire rstn,
+    input wire [31:0] addr,
+    input wire [31:0] data_in,
+    input wire write_enable,
+    input wire read_enable,
+    output wire [31:0] data_out,
+    output wire ready,
+    output wire miss
+   );
+
+   ram_block_data dmem(.clk(clk),
+                       .we(write_enable),
+                       .addr(addr[11:2]),
+                       .di(data_in),
+                       .dout(data_out));
+
+   assign ready = 1'b1;
+   assign miss = 1'b0;
+endmodule
+
 `default_nettype wire
