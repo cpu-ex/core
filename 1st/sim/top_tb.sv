@@ -40,9 +40,14 @@ module top_tb();
     logic clk, clk_uart, rstn, rxd, txd;
     logic [7:0] prog [2000:0];
     logic [31:0] program_size;
-    assign program_size = {30'd7,2'b00};
+    assign program_size = {30'd27,2'b00};
 
-    int i;
+    int i, j;
+    integer mcd;
+    logic [63:0] step_count;
+    wire [101:0] flushed_inst0 = 102'b0; 
+    wire [101:0] flushed_inst1 = 102'b1101000010; 
+    logic first; // instr at 0 execute twice ?
 
     top_wrap #(CLK_PER_HALF_BIT) top_wrap(.clk(clk),
                                           .rstn(rstn),
@@ -72,14 +77,49 @@ module top_tb();
     always #(HALF_TMCLK_UART) begin
         clk_uart = ~clk_uart;
     end
+
+    // output for debug
+    always @(posedge clk) begin
+        if (~first && rstn && (top_wrap.top.cpu.inst_MW_reg != flushed_inst0) && (top_wrap.top.cpu.inst_MW_reg != flushed_inst1)) begin
+
+            // step
+            $fwrite(mcd, "step:%h", step_count);
+
+            // pc
+            $fwrite(mcd, " pc:%h", top_wrap.top.cpu.inst_MW_reg.pc);
+
+            // register file 
+            for (j=0;j<32;j++) begin
+                $fwrite(mcd, " x%0d:%h",j, top_wrap.top.cpu.regfile.reg_file[j]);
+            end
+            for (j=32;j<64;j++) begin 
+                $fwrite(mcd, " f%0d:%h",j-32, top_wrap.top.cpu.regfile.reg_file[j]);       
+            end
+            $fwrite(mcd,"\n");
+
+            step_count = step_count + 63'b1;
+        end else if (rstn && (top_wrap.top.cpu.inst_MW_reg != flushed_inst0) && (top_wrap.top.cpu.inst_MW_reg != flushed_inst1)) begin
+            first = 0;
+        end
+    end
+    
+    initial begin
+        mcd = $fopen("vivado_output.txt","w");
+    end
+    
+    final begin
+        $fclose(mcd);
+    end
     
     initial begin
         clk = 0;
         clk_uart = 0;
         rstn = 0;
         rxd = 1;
+        step_count = 0;
+        first = 1;
 
-        $readmemb("data_mem.mem",top_wrap.top.cpu.dmem.ram);
+        //$readmemb("data_mem.mem",top_wrap.top.cpu.memory.dmem.ram);
         $readmemb("inst_mem.mem",prog);
 
         #(HALF_TMCLK*100);
@@ -96,8 +136,9 @@ module top_tb();
             uart(prog[i]);
         end
 
-        #(HALF_TMCLK*200);
+        #(600 * 1000);
         $finish;
     end
+    
 
 endmodule
