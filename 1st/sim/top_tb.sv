@@ -48,6 +48,7 @@ module top_tb();
     wire [101:0] flushed_inst0 = 102'b0; 
     wire [101:0] flushed_inst1 = 102'b1101000010; 
     logic first; // instr at 0 execute twice ?
+    logic write_enable_before; 
 
     top_wrap #(CLK_PER_HALF_BIT) top_wrap(.clk(clk),
                                           .rstn(rstn),
@@ -80,7 +81,11 @@ module top_tb();
 
     // output for debug
     always @(posedge clk) begin
-        if (~first && rstn && (top_wrap.top.cpu.inst_MW_reg != flushed_inst0) && (top_wrap.top.cpu.inst_MW_reg != flushed_inst1)) begin
+        if (~first && 
+            rstn   && 
+            (top_wrap.top.cpu.inst_MW_reg != flushed_inst0) && 
+            (top_wrap.top.cpu.inst_MW_reg != flushed_inst1) && 
+            (write_enable_before)) begin
 
             // step
             $fwrite(mcd, "step:%h", step_count);
@@ -98,9 +103,13 @@ module top_tb();
             $fwrite(mcd,"\n");
 
             step_count = step_count + 63'b1;
-        end else if (rstn && (top_wrap.top.cpu.inst_MW_reg != flushed_inst0) && (top_wrap.top.cpu.inst_MW_reg != flushed_inst1)) begin
+        end else if (rstn && 
+                     (top_wrap.top.cpu.inst_MW_reg != flushed_inst0) && 
+                     (top_wrap.top.cpu.inst_MW_reg != flushed_inst1) && 
+                     (write_enable_before)) begin
             first = 0;
         end
+        write_enable_before = top_wrap.top.cpu.write_enable;
     end
     
     initial begin
