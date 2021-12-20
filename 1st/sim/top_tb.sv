@@ -37,6 +37,12 @@ module top_tb();
     localparam HALF_TMCLK = 50;
     localparam CLK_PER_HALF_BIT = 86;
 
+    // step_count \in [step_left, step_right]
+    // this parameter changes debug output range
+    localparam step_left = 64'd1;
+    localparam step_right = 64'd10; 
+
+
     logic clk, clk_uart, rstn, rxd, txd;
     logic [7:0] prog [2000:0];
     logic [31:0] program_size;
@@ -47,7 +53,6 @@ module top_tb();
     logic [63:0] step_count;
     wire [101:0] flushed_inst0 = 102'b0; 
     wire [101:0] flushed_inst1 = 102'b1101000010; 
-    logic first; // instr at 0 execute twice ?
     logic write_enable_before; 
 
     top_wrap #(CLK_PER_HALF_BIT) top_wrap(.clk(clk),
@@ -81,33 +86,33 @@ module top_tb();
 
     // output for debug
     always @(posedge clk) begin
-        if (~first && 
-            rstn   && 
+        if (rstn   && 
+            (top_wrap.top.cpu.inst_MW_reg.pc >= 64'h104) && 
             (top_wrap.top.cpu.inst_MW_reg != flushed_inst0) && 
             (top_wrap.top.cpu.inst_MW_reg != flushed_inst1) && 
             (write_enable_before)) begin
 
-            // step
-            $fwrite(mcd, "step:%h", step_count);
+            step_count = step_count + 64'b1;
 
-            // pc
-            $fwrite(mcd, " pc:%h", top_wrap.top.cpu.inst_MW_reg.pc);
+            if (step_left <= step_count && step_count <= step_right) begin
 
-            // register file 
-            for (j=0;j<32;j++) begin
-                $fwrite(mcd, " x%0d:%h",j, top_wrap.top.cpu.regfile.reg_file[j]);
-            end
-            for (j=32;j<64;j++) begin 
-                $fwrite(mcd, " f%0d:%h",j-32, top_wrap.top.cpu.regfile.reg_file[j]);       
-            end
-            $fwrite(mcd,"\n");
+                // step
+                $fwrite(mcd, "step:%h", step_count);
 
-            step_count = step_count + 63'b1;
-        end else if (rstn && 
-                     (top_wrap.top.cpu.inst_MW_reg != flushed_inst0) && 
-                     (top_wrap.top.cpu.inst_MW_reg != flushed_inst1) && 
-                     (write_enable_before)) begin
-            first = 0;
+                // pc
+                $fwrite(mcd, " pc:%h", top_wrap.top.cpu.inst_MW_reg.pc);
+
+                // register file 
+                for (j=0;j<32;j++) begin
+                    $fwrite(mcd, " x%0d:%h",j, top_wrap.top.cpu.regfile.reg_file[j]);
+                end
+                for (j=32;j<64;j++) begin 
+                    $fwrite(mcd, " f%0d:%h",j-32, top_wrap.top.cpu.regfile.reg_file[j]);       
+                end
+                $fwrite(mcd,"\n");
+
+            end 
+
         end
         write_enable_before = top_wrap.top.cpu.write_enable;
     end
@@ -116,8 +121,11 @@ module top_tb();
         mcd = $fopen("vivado_output.txt","w");
     end
     
-    final begin
-        $fclose(mcd);
+    always @(step_count) begin
+        if (step_count > step_right) begin
+            $fflush(mcd);
+            $fclose(mcd);
+        end
     end
     
     initial begin
@@ -126,7 +134,6 @@ module top_tb();
         rstn = 0;
         rxd = 1;
         step_count = 0;
-        first = 1;
 
         //$readmemb("data_mem.mem",top_wrap.top.cpu.memory.dmem.ram);
         $readmemb("inst_mem.mem",prog);
