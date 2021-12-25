@@ -40,16 +40,19 @@ module top_tb();
     // step_count \in [step_left, step_right]
     // this parameter changes debug output range
     localparam step_left = 64'd1;
-    localparam step_right = 64'd10; 
+    localparam step_right = 64'd30; 
 
 
     logic clk, clk_uart, rstn, rxd, txd;
     logic [7:0] prog [2000:0];
     logic [31:0] program_size;
     assign program_size = {30'd27,2'b00};
+    logic [7:0] uart_input [2000:0];
+    logic [31:0] uart_input_size;
+    assign uart_input_size = {32'd10};
 
     int i, j;
-    integer mcd;
+    integer mcd, uart_output;
     logic [63:0] step_count;
     wire [101:0] flushed_inst0 = 102'b0; 
     wire [101:0] flushed_inst1 = 102'b1101000010; 
@@ -82,6 +85,29 @@ module top_tb();
 
     always #(HALF_TMCLK_UART) begin
         clk_uart = ~clk_uart;
+    end
+
+    initial begin
+        mcd = $fopen("vivado_output.txt","w");
+        uart_output = $fopen("uart_output.txt","w");
+    end
+
+    logic [7:0] rx_data;
+    byte c;
+    logic rdata_ready, ferr;
+    uart_rx #(CLK_PER_HALF_BIT) uart_rx_sim(.rdata(rx_data),
+                                            .rdata_ready(rdata_ready),
+                                            .ferr(ferr),
+                                            .rxd(txd),
+                                            .clk(clk_uart),
+                                            .rstn(rstn));
+    // output for uart
+    always @(posedge clk_uart) begin
+        if (rdata_ready) begin
+            c = rx_data;
+            $fwrite(uart_output, "%c", c);
+            $fflush(uart_output);
+        end
     end
 
     // output for debug
@@ -117,10 +143,6 @@ module top_tb();
         write_enable_before = top_wrap.top.cpu.write_enable;
     end
     
-    initial begin
-        mcd = $fopen("vivado_output.txt","w");
-    end
-    
     always @(step_count) begin
         if (step_count > step_right) begin
             $fflush(mcd);
@@ -135,7 +157,7 @@ module top_tb();
         rxd = 1;
         step_count = 0;
 
-        //$readmemb("data_mem.mem",top_wrap.top.cpu.memory.dmem.ram);
+        $readmemb("data_mem.mem",uart_input);
         $readmemb("inst_mem.mem",prog);
 
         #(HALF_TMCLK*100);
@@ -151,6 +173,10 @@ module top_tb();
         for (i=0;i<program_size;i++) begin
             uart(prog[i]);
         end
+        for (i=0;i<uart_input_size;i++) begin
+            uart(uart_input[i]);
+        end
+
 
         #(600 * 1000);
         $finish;

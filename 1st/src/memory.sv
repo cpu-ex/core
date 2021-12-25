@@ -50,7 +50,7 @@ module memory
     end 
 
     /* ----- data memory ----- */
-    localparam UART_ADDR = 10'b0000000000;
+    localparam UART_ADDR = 26'h3fffffc;
 
     logic [31:0] addr;
     logic [31:0] wdata; // data_in
@@ -92,10 +92,10 @@ module memory
     /* ----- data memory ----- */
 
     logic [31:0] memrdata;
-    assign memrdata = aluresult_EM_reg[9:0] == UART_ADDR ? {24'b0,uart_rx_data}:
+    assign memrdata = aluresult_EM_reg[25:0] == UART_ADDR ? {24'b0,uart_rx_data}:
                       memrdata_;
-    assign uart_rd_en = inst_EM_reg.memread  && aluresult_EM_reg[9:0] == UART_ADDR;
-    assign uart_wr_en = inst_EM_reg.memwrite && aluresult_EM_reg[9:0] == UART_ADDR;
+    assign uart_rd_en = inst_EM_reg.memread  && aluresult_EM_reg[25:0] == UART_ADDR;
+    assign uart_wr_en = inst_EM_reg.memwrite && aluresult_EM_reg[25:0] == UART_ADDR;
     assign uart_tx_data = rdata1_EM_reg[7:0];
 
     mux2 regwdatamux2(.data0(result_EM_reg),
