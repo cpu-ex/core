@@ -19,10 +19,6 @@ Data Memory(2^26 byte)
 + 0x0000000からstatic data,heap,stack,MMIOが割り当てられる。
 
 MMIO
-+ ~~0x3FFFFF0: uart_in~~
-+ ~~0x3FFFFF4: uart_in_valid~~
-+ ~~0x3FFFFF8: uart_out_valid~~
-+ ~~0x3FFFFFC: uart_out~~
 + 0x3FFFFFC: uart_addr
 
 uart_in_valid, uart_out_validは用意せず、一つのart_addrのみ使う。
@@ -49,40 +45,41 @@ main:
 loop: # wait fifo reset
   addi t0, t0, -1
   blt zero, t0, loop
+  li t2, 0x3FFFFFC # uart addr
 
   addi t0, zero, 0x99
-  sw t0, 0(zero) # uart_tx
+  sw t0, 0(t2) # uart_tx
 # receive program size  
-  lw t1, 0(zero) # uart_rx
+  lw t1, 0(t2) # uart_rx
   slli t1, t1, 8
 
-  lw t0, 0(zero) # uart_rx
+  lw t0, 0(t2) # uart_rx
   or t1, t1, t0
   slli t1, t1, 8
 
-  lw t0, 0(zero) # uart_rx
+  lw t0, 0(t2) # uart_rx
   or t1, t1, t0
   slli t1, t1, 8
 
-  lw t0, 0(zero) # uart_rx
+  lw t0, 0(t2) # uart_rx
   or t1, t1, t0
 
 # receive program   
   li a2, 0x100 # program start point
 pload:
 
-  lw a1, 0(zero) # uart_rx
+  lw a1, 0(t2) # uart_rx
   slli a1, a1, 8
 
-  lw a0, 0(zero) # uart_rx
+  lw a0, 0(t2) # uart_rx
   or a1, a1, a0
   slli a1, a1, 8
 
-  lw a0, 0(zero) # uart_rx
+  lw a0, 0(t2) # uart_rx
   or a1, a1, a0
   slli a1, a1, 8
 
-  lw a0, 0(zero) # uart_rx
+  lw a0, 0(t2) # uart_rx
   or a1, a1, a0
 
   swi a1, 0(a2)
@@ -91,7 +88,7 @@ pload:
   blt zero, t1, pload
 
   addi t0, zero, 0xaa
-  sw t0, 0(zero) # uart_tx
+  sw t0, 0(t2) # uart_tx
 
   # jump progarm
   jalr zero, 0x100(zero)
