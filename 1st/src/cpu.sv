@@ -289,7 +289,7 @@ module cpu(
     // assing decode_enable = ~lwstall && ~branchjump_miss && ~exec_fin && ~memory_fin
 
     assign exec_enable = ~lwstall && ~branchjump_miss && exec_fin && memory_fin;
-    assign exec_rstn = ~(branchjump_miss || lwstall);
+    assign exec_rstn = ~(branchjump_miss || (lwstall && memory_enable ));
     // ?
 
     assign memory_enable = exec_fin && memory_fin; //?
