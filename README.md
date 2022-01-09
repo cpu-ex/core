@@ -1,21 +1,17 @@
 # core
 
-## 1st完動までのtodo
-+ 目標としてはパイプラインで正常に動くコアを作る。(core 10Mhz, uart 100Mhz)
-+ 実装をきれいにして、実機のテストする。
-+ DRAMのメモリと合流
-+ FPUと合流
-+ 完動?
+## 1st
++ 5段パイプラインコア、キャッシュなし(core 10Mhz, uart 100Mhz) 
++ 実行時間 16x16 111s 128x128 55m50s
 
 ## 2ndの予定
-+ パイプラインにする。
 + ??
 
 ## 仕様
 ### Memory
 + Big endian
 
-Data Memory(2^26 byte)
+Data Memory(2^27 byte)
 + 0x0000000からstatic data,heap,stack,MMIOが割り当てられる。
 
 MMIO
@@ -27,7 +23,7 @@ uart_addrにlwしたら、送信、uart_addrにswしたら受信。
 
 Instruction Memory
 + Data Memoryとは別のメモリ空間
-+ サイズはまだ決まってない。
++ サイズは2 ^ 17 byte
 
 ### Instruction
 RISC-VのRV32IFの一部と命令メモリに書き込むための命令swi(store word instruction)
