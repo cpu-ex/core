@@ -25,30 +25,29 @@ module cpu(
     input wire clk,
     input wire rstn,
     // uart_rx_unit
-    (*mark_debug="true"*)input wire [7:0] uart_rx_data,
-    (*mark_debug="true"*)input wire empty,
-    (*mark_debug="true"*)output wire uart_rd_en,
+    input wire [7:0] uart_rx_data,
+    input wire empty,
+    output wire uart_rd_en,
     // uart_tx_unit
-    (*mark_debug="true"*)output wire [7:0] uart_tx_data,
-    (*mark_debug="true"*)input wire full,
-    (*mark_debug="true"*)output wire uart_wr_en,
+    output wire [7:0] uart_tx_data,
+    input wire full,
+    output wire uart_wr_en,
     // DRAM
-    (*mark_debug="true"*)output logic [31:0] addr,
-    (*mark_debug="true"*)output logic [31:0] wdata, 
-    (*mark_debug="true"*)input wire [31:0] rdata, 
-    (*mark_debug="true"*)output logic write_enable_DRAM,
-    (*mark_debug="true"*)output logic read_enable_DRAM,
+    output logic [31:0] addr,
+    output logic [31:0] wdata, 
+    input wire [31:0] rdata, 
+    output logic write_enable_DRAM,
+    output logic read_enable_DRAM,
     // input logic ready;
     input wire miss
     );   
 
-    (*mark_debug="true"*)logic [31:0] pc; // fetch stage stall -> pc <= pc
-    (*mark_debug="true"*)logic [31:0] pcnext;
-    (*mark_debug="true"*) wire pc_debug = (pc > 32'b100);
+    logic [31:0] pc; // fetch stage stall -> pc <= pc
+    logic [31:0] pcnext;
     logic [1:0] forward0;
     logic [1:0] forward1;
     logic lwstall;
-    (*mark_debug="true"*)logic branchjump_miss;
+    logic branchjump_miss;
 
     wire fetch_rstn;
     wire fetch_enable;
@@ -71,7 +70,7 @@ module cpu(
     wire write_fin;
 
 
-    (*mark_debug="true"*)logic [31:0] imemraddr;
+    logic [31:0] imemraddr;
     logic [31:0] imemrdata;
     logic [31:0] pc_FD;
     logic [31:0] instr_FD;

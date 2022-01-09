@@ -25,8 +25,8 @@ module top #(CLK_PER_HALF_BIT = 86)(
     input wire clk,
     input wire clk_uart,
     input wire rstn,
-    (*mark_debug = "true"*)input wire rxd,
-    (*mark_debug = "true"*)output wire txd,
+    input wire rxd,
+    output wire txd,
     
     // DRAM
     output logic [31:0] addr,
@@ -39,7 +39,7 @@ module top #(CLK_PER_HALF_BIT = 86)(
     );
 
     logic full, empty, rd_en, wr_en;
-    (*mark_debug = "true"*)logic [7:0] rdata, tdata;
+    logic [7:0] rdata, tdata;
 
     cpu cpu(.clk(clk),
             .rstn(rstn),

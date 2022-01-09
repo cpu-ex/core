@@ -22,14 +22,14 @@
 
 
 module pc_control (
-    (*mark_debug="true"*)input wire [1:0] branchjump, // 2'b00 -> pc += 4
+    input wire [1:0] branchjump, // 2'b00 -> pc += 4
                                                       // 2'b01 -> branch
                                                       // 2'b10 -> pc += (signed)imm (JAL)
                                                       // 2'b11 -> pc = rdata0 + (signed)imm (JALR)
-    (*mark_debug="true"*)input wire flag,
-    (*mark_debug="true"*)input wire [31:0] pc4,   // pc + 4
-    (*mark_debug="true"*)input wire [31:0] pcimm, // pc + imm
-    (*mark_debug="true"*)input wire [31:0] pcjalr,
+    input wire flag,
+    input wire [31:0] pc4,   // pc + 4
+    input wire [31:0] pcimm, // pc + imm
+    input wire [31:0] pcjalr,
 
     output wire [31:0] pcnext
     );

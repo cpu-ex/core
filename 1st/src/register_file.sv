@@ -36,9 +36,6 @@ module register_file(
     );
 
     reg [31:0] reg_file[63:0];
-    (*mark_debug="true"*)wire [31:0] ra = reg_file[1]; 
-    (*mark_debug="true"*)wire [31:0] tp = reg_file[4]; 
-    (*mark_debug="true"*)wire [31:0] a4 = reg_file[14]; 
 
     always_ff @(posedge clk) begin
         if (~rstn) begin
