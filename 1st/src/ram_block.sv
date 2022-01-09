@@ -23,12 +23,12 @@
 module ram_block_data(
     input wire clk,
     input wire we,
-    input wire [9:0] addr,
+    input wire [15:0] addr,
     input wire [31:0] di,
     output reg [31:0] dout 
     );
 
-    (* ram_style = "block" *) reg [31:0] ram [1023:0];
+    (* ram_style = "block" *) reg [31:0] ram [((2 ** 16) - 1):0];
 
     always @(posedge clk) begin
         if (we) begin
@@ -46,13 +46,13 @@ endmodule
 module ram_block_inst(
     input wire clk,
     input wire we,
-    input wire [9:0] raddr,
-    input wire [9:0] waddr,
+    input wire [14:0] raddr,
+    input wire [14:0] waddr,
     input wire [31:0] di,
     output reg [31:0] dout 
     );
 
-    (* ram_style = "block" *) reg [31:0] ram [1023:0];
+    (* ram_style = "block" *) reg [31:0] ram [((2  ** 15) - 1):0];
 
     initial begin
         $readmemb("bootloader.mem",ram);

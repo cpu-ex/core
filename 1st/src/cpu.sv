@@ -25,21 +25,30 @@ module cpu(
     input wire clk,
     input wire rstn,
     // uart_rx_unit
-    input wire [7:0] uart_rx_data,
-    input wire empty,
-    output wire uart_rd_en,
+    (*mark_debug="true"*)input wire [7:0] uart_rx_data,
+    (*mark_debug="true"*)input wire empty,
+    (*mark_debug="true"*)output wire uart_rd_en,
     // uart_tx_unit
-    output wire [7:0] uart_tx_data,
-    input wire full,
-    output wire uart_wr_en
+    (*mark_debug="true"*)output wire [7:0] uart_tx_data,
+    (*mark_debug="true"*)input wire full,
+    (*mark_debug="true"*)output wire uart_wr_en,
+    // DRAM
+    (*mark_debug="true"*)output logic [31:0] addr,
+    (*mark_debug="true"*)output logic [31:0] wdata, 
+    (*mark_debug="true"*)input wire [31:0] rdata, 
+    (*mark_debug="true"*)output logic write_enable_DRAM,
+    (*mark_debug="true"*)output logic read_enable_DRAM,
+    // input logic ready;
+    input wire miss
     );   
 
-    logic [31:0] pc; // fetch stage stall -> pc <= pc
-    logic [31:0] pcnext;
+    (*mark_debug="true"*)logic [31:0] pc; // fetch stage stall -> pc <= pc
+    (*mark_debug="true"*)logic [31:0] pcnext;
+    (*mark_debug="true"*) wire pc_debug = (pc > 32'b100);
     logic [1:0] forward0;
     logic [1:0] forward1;
     logic lwstall;
-    logic branchjump_miss;
+    (*mark_debug="true"*)logic branchjump_miss;
 
     wire fetch_rstn;
     wire fetch_enable;
@@ -62,7 +71,7 @@ module cpu(
     wire write_fin;
 
 
-    logic [31:0] imemraddr;
+    (*mark_debug="true"*)logic [31:0] imemraddr;
     logic [31:0] imemrdata;
     logic [31:0] pc_FD;
     logic [31:0] instr_FD;
@@ -189,6 +198,12 @@ module cpu(
                   .imemwrite(imemwrite),
                   .imemwaddr(imemwaddr),
                   .imemwdata(imemwdata),
+                  .addr(addr),
+                  .wdata(wdata),
+                  .rdata(rdata),
+                  .write_enable(write_enable_DRAM),
+                  .read_enable(read_enable_DRAM),
+                  .miss(miss),
                   .inst(inst_EM),
                   .aluresult(aluresult_EM),
                   .result(result_EM),
@@ -234,8 +249,8 @@ module cpu(
     // inst memory
     ram_block_inst imem(.clk(clk), 
                         .we(imemwrite), 
-                        .raddr(imemraddr[11:2]),
-                        .waddr(imemwaddr[11:2]),  
+                        .raddr(imemraddr[16:2]),
+                        .waddr(imemwaddr[16:2]),  
                         .di(imemwdata),
                         .dout(imemrdata));   
 
