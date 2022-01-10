@@ -69,7 +69,8 @@ module cpu(
     wire write_enable;
     wire write_fin;
 
-
+    logic i_jal;
+    logic [31:0] pc_jal;
     logic [31:0] imemraddr;
     logic [31:0] imemrdata;
     logic [31:0] pc_FD;
@@ -82,7 +83,8 @@ module cpu(
                 .imemraddr(imemraddr),
                 .imemrdata(imemrdata),
                 .branchjump_miss(branchjump_miss),
-                .lwstall(lwstall),
+                .i_jal(i_jal),
+                .pc_jal(pc_jal),
                 .pc(pc),
                 .pcnext(pcnext),
                 .pc_out(pc_FD),
@@ -283,7 +285,7 @@ module cpu(
             pc <= 32'b0;
         end else begin
             if (fetch_enable) begin // ~stall && ~flush
-                pc <= pc + 32'b100;
+                pc <= (i_jal ? pc_jal : pc) + 32'b100;
             end else if (branchjump_miss) begin // branchjump miss
                 pc <= pcnext + 32'b100;
             end 
