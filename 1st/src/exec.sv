@@ -78,7 +78,8 @@ module exec
     assign rd = inst.rd;
     assign regwrite = inst.regwrite;
     assign memread = inst.memread;
-    assign branchjump_miss = pcnext != pc4;
+    assign branchjump_miss = inst.branchjump == 2'b10 ? 1'b0 :  // JAL 
+                                                        pcnext != pc4;
     assign aluresult = aluresult_;
     assign inst_out = inst;
     assign rdata1_out = rdata1;
