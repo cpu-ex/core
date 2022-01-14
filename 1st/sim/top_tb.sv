@@ -40,16 +40,16 @@ module top_tb();
     // step_count \in [step_left, step_right]
     // this parameter changes debug output range
     localparam step_left = 64'd1;
-    localparam step_right = 64'd30; 
+    localparam step_right = 64'd1482; 
 
 
     logic clk, clk_uart, rstn, rxd, txd;
     logic [7:0] prog [2000:0];
     logic [31:0] program_size;
-    assign program_size = {30'd27,2'b00};
+    assign program_size = {30'd1,2'b00};
     logic [7:0] uart_input [2000:0];
     logic [31:0] uart_input_size;
-    assign uart_input_size = {32'd10};
+    assign uart_input_size = {32'd1300};
 
     int i, j;
     integer mcd, uart_output;
@@ -58,11 +58,33 @@ module top_tb();
     wire [101:0] flushed_inst1 = 102'b1101000010; 
     logic write_enable_before; 
 
+    logic [31:0] addr_cache;
+    logic [31:0] wdata_cache; 
+    wire [31:0] rdata_cache;
+    logic write_enable_cache;
+    logic read_enable_cache;
+    wire miss_cache;
+
     top_wrap #(CLK_PER_HALF_BIT) top_wrap(.clk(clk),
                                           .rstn(rstn),
                                           .clk_uart(clk_uart),
                                           .rxd(rxd),
-                                          .txd(txd));
+                                          .txd(txd),
+                                          .addr_cache(addr_cache),
+                                          .wdata_cache(wdata_cache),
+                                          .rdata_cache(rdata_cache),
+                                          .write_enable_cache(write_enable_cache),
+                                          .read_enable_cache(read_enable_cache),
+                                          .miss_cache(miss_cache));
+    
+    memory_interface_wrap dmem(.clk(clk),
+                               .rstn(rstn),
+                               .addr(addr_cache),
+                               .data_in(wdata_cache),
+                               .data_out(rdata_cache),
+                               .write_enable(write_enable_cache),
+                               .read_enable(read_enable_cache),
+                               .miss(miss_cache));
 
     task uart(input logic [7:0] data);
         begin
