@@ -106,7 +106,7 @@ module single_cycle_control(
     localparam FLT    = 3'b001;
     localparam FLE    = 3'b000;
 
-    /* verilator lint_off UNUSED */ logic i_lui, i_auipc, i_jal, i_jalr, 
+    logic i_lui, i_auipc, i_jal, i_jalr, 
           i_beq, i_bne, i_blt, i_bge, 
           i_lw,
           i_sw, i_swi, 

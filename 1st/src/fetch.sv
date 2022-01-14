@@ -4,7 +4,7 @@
 module fetch
    (input wire clk,
     input wire rstn,
-     /* verilator lint_off UNUSED */ input wire enable,
+    input wire enable,
     output wire fin,
 
     output logic [31:0] imemraddr,

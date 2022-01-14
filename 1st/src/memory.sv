@@ -3,9 +3,9 @@
 `include "def.sv"
 
 module memory
-   (/* verilator lint_off UNUSED */ input wire clk,
-    /* verilator lint_off UNUSED */ input wire rstn,
-    /* verilator lint_off UNUSED */ input wire enable,
+   (input wire clk,
+    input wire rstn,
+    input wire enable,
     output wire fin,
 
     output logic [5:0] rd,
@@ -14,13 +14,12 @@ module memory
     output logic [31:0] imemwaddr,
     output logic [31:0] imemwdata,
 
-    // DRAM
+    // cache
     output logic [31:0] addr,
     output logic [31:0] wdata, 
     input wire [31:0] rdata,
     output logic write_enable,
     output logic read_enable,
-    // input logic ready;
     input wire miss,
 
     input Inst inst,
@@ -42,7 +41,7 @@ module memory
     logic [31:0] aluresult_EM_reg;
     logic [31:0] result_EM_reg;
     logic [31:0] rdata1_EM_reg;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (~rstn) begin
             inst_EM_reg <= '{default : '0};
             aluresult_EM_reg <= 32'b0;
@@ -60,14 +59,6 @@ module memory
 
     /* ----- data memory ----- */
     localparam UART_ADDR = 26'h3fffffc;
-
-    // logic [31:0] addr;
-    // logic [31:0] wdata; // data_in
-    // logic [31:0] rdata; // data_out
-    // logic write_enable;
-    // logic read_enable;
-    // logic ready;
-    // logic miss;
     logic [31:0] memrdata_;
 
     assign addr = miss ? aluresult_EM_reg:
@@ -79,17 +70,6 @@ module memory
     assign read_enable = miss ? 1'b0:
                          (inst.memread && (addr[25:0] != UART_ADDR[25:0]));
     assign memrdata_ = rdata;
-
-    // memory_interface dmem(.clk(clk),                   // input wire
-    //                       .rstn(rstn),                 // input wire 
-    //                       .addr(addr),                 // input wire [31:0]
-    //                       .data_in(wdata),             // input wire [31:0] write data  
-    //                       .write_enable(write_enable), // input wire
-    //                       .read_enable(read_enable),   // input wire
-    //                       .data_out(rdata),            // output wire [31:0] read data
-    //                       .ready(ready),               // output wire        ready == 1'b1 <-> core can assert write_enable or read_enable 
-    //                       .miss(miss));                // output wire        miss == 1'b0 <-> memory finish load or store
-    //                                                    //                    miss == 1'b1 <-> core must wait memory
                           
     // 1 idle -> lw or sw
     // 1 idle -> idle
@@ -122,62 +102,5 @@ module memory
 
 
 endmodule
-
-// // temporary memory 
-// // always cache miss
-// // stall 0 ~ 16 clock virtually
-// module memory_interface
-//    (input wire clk,
-//     input wire rstn,
-//     input wire [31:0] addr,
-//     input wire [31:0] data_in,
-//     input wire write_enable,
-//     input wire read_enable,
-//     output logic [31:0] data_out,
-//     output logic ready,
-//     output logic miss
-//    );
-
-//     // ram_block_data dmem(.clk(clk),
-//     //                     .we(write_enable),
-//     //                     .addr(addr[17:2]),
-//     //                     .di(data_in),
-//     //                     .dout(data_out));
-//     // assign ready = 1'b1;
-//     // assign miss = 1'b0;
-
-//     logic [31:0] temp_data, temp_data1;
-//     ram_block_data dmem(.clk(clk),
-//                         .we(write_enable),
-//                         .addr(addr[17:2]),
-//                         .di(data_in),
-//                         .dout(temp_data));
-
-//     logic [3:0] cnt;
-//     logic before_read_enable;
-//     always_ff @(posedge clk) begin
-//         if (~rstn) begin
-//             cnt <= 4'b0;
-//             ready <= 1'b1;
-//             miss <= 1'b0;
-//             before_read_enable <= 1'b0;
-//         end else begin
-//             if (read_enable) begin
-//                 ready <= 1'b0;
-//                 miss <= 1'b1;
-//                 before_read_enable <= 1'b1;
-//             end else if (before_read_enable) begin
-//                 temp_data1 <= temp_data;
-//                 before_read_enable <= 1'b0;
-//             end else if (cnt == 4'b00) begin
-//                 data_out <= temp_data1;
-//                 ready <= 1'b1;
-//                 miss <= 1'b0;
-//             end
-//             cnt <= cnt + 4'b0;
-//         end
-//     end
-
-// endmodule
 
 `default_nettype wire

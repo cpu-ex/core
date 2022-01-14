@@ -32,14 +32,13 @@ module cpu(
     output wire [7:0] uart_tx_data,
     input wire full,
     output wire uart_wr_en,
-    // DRAM
-    output logic [31:0] addr,
-    output logic [31:0] wdata, 
-    input wire [31:0] rdata, 
-    output logic write_enable_DRAM,
-    output logic read_enable_DRAM,
-    // input logic ready;
-    input wire miss
+    // cache
+    output logic [31:0] addr_cache,
+    output logic [31:0] wdata_cache, 
+    input wire [31:0] rdata_cache, 
+    output logic write_enable_cache,
+    output logic read_enable_cache,
+    input wire miss_cache
     );   
 
     logic [31:0] pc; // fetch stage stall -> pc <= pc
@@ -51,7 +50,7 @@ module cpu(
 
     wire fetch_rstn;
     wire fetch_enable;
-    /* verilator lint_off UNUSED */ wire fetch_fin;
+    wire fetch_fin;
 
     wire decode_rstn;
     wire decode_enable;
@@ -93,7 +92,7 @@ module cpu(
     // FD
     logic [31:0] pc_FD_reg;
     logic [31:0] instr_FD_reg;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (~(rstn && decode_rstn)) begin
             pc_FD_reg <= 32'b0;
             instr_FD_reg <= 32'b0;
@@ -138,7 +137,7 @@ module cpu(
     Inst inst_DE_reg;
     logic [31:0] rdata0_DE_reg;
     logic [31:0] rdata1_DE_reg;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (~(rstn && exec_rstn)) begin
             inst_DE_reg <= '{default : '0};
             rdata0_DE_reg <= 5'b0;
@@ -199,12 +198,12 @@ module cpu(
                   .imemwrite(imemwrite),
                   .imemwaddr(imemwaddr),
                   .imemwdata(imemwdata),
-                  .addr(addr),
-                  .wdata(wdata),
-                  .rdata(rdata),
-                  .write_enable(write_enable_DRAM),
-                  .read_enable(read_enable_DRAM),
-                  .miss(miss),
+                  .addr(addr_cache),
+                  .wdata(wdata_cache),
+                  .rdata(rdata_cache),
+                  .write_enable(write_enable_cache),
+                  .read_enable(read_enable_cache),
+                  .miss(miss_cache),
                   .inst(inst_EM),
                   .aluresult(aluresult_EM),
                   .result(result_EM),
@@ -221,7 +220,7 @@ module cpu(
     // MW
     Inst inst_MW_reg;
     logic [31:0] regwdata_MW_reg;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (~(rstn && write_rstn)) begin
             inst_MW_reg <= '{default : '0};
             regwdata_MW_reg <= 32'b0;
@@ -280,7 +279,7 @@ module cpu(
 
     // branch jump unit
     // stall && flush  signal
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (~rstn)  begin
             pc <= 32'b0;
         end else begin
@@ -306,7 +305,6 @@ module cpu(
 
     assign exec_enable = ~lwstall && ~branchjump_miss && exec_fin && memory_fin;
     assign exec_rstn = ~( (branchjump_miss || lwstall) && memory_enable );
-    // ?
 
     assign memory_enable = exec_fin && memory_fin; //?
     assign memory_rstn = 1'b1;

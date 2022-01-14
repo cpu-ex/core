@@ -30,10 +30,9 @@ module ram_block_data(
 
     (* ram_style = "block" *) reg [31:0] ram [((2 ** 16) - 1):0];
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (we) begin
             ram[addr] <= di;
-            dout <= di;
         end else begin
             dout <= ram[addr];
         end
@@ -58,17 +57,14 @@ module ram_block_inst(
         $readmemb("bootloader.mem",ram);
     end
 
-    logic [31:0] dout1, dout2;
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (we) begin
             ram[waddr] <= di;
-            dout1 <= di;
-        end else begin
-            dout1 <= ram[waddr];
         end
-        dout2 <= ram[raddr];
+        dout <= ram[raddr];
     end
 
-    assign dout = ((raddr == waddr && we) ? dout1 : dout2);
+    // assume raddr != waddr
+    // only bootloader have swi instruction  
 endmodule
 `default_nettype wire

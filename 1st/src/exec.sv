@@ -3,9 +3,9 @@
 `include "def.sv"
 
 module exec
-   (/* verilator lint_off UNUSED */ input wire clk,
-    /* verilator lint_off UNUSED */ input wire rstn,
-    /* verilator lint_off UNUSED */ input wire enable,
+   (input wire clk,
+    input wire rstn,
+    input wire enable,
     output wire fin,
 
     output logic [5:0] rd,

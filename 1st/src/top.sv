@@ -28,14 +28,13 @@ module top #(CLK_PER_HALF_BIT = 86)(
     input wire rxd,
     output wire txd,
     
-    // DRAM
-    output logic [31:0] addr,
-    output logic [31:0] wdata, 
-    input wire [31:0] rdata_DRAM, 
-    output logic write_enable_DRAM,
-    output logic read_enable_DRAM,
-    // input logic ready;
-    input wire miss
+    // cache
+    output logic [31:0] addr_cache,
+    output logic [31:0] wdata_cache, 
+    input wire [31:0] rdata_cache, 
+    output logic write_enable_cache,
+    output logic read_enable_cache,
+    input wire miss_cache
     );
 
     logic full, empty, rd_en, wr_en;
@@ -49,12 +48,12 @@ module top #(CLK_PER_HALF_BIT = 86)(
             .uart_tx_data(tdata),
             .full(full),
             .uart_wr_en(wr_en),
-            .addr(addr),
-            .wdata(wdata),
-            .rdata(rdata_DRAM),
-            .write_enable_DRAM(write_enable_DRAM),
-            .read_enable_DRAM(read_enable_DRAM),
-            .miss(miss));
+            .addr_cache(addr_cache),
+            .wdata_cache(wdata_cache),
+            .rdata_cache(rdata_cache),
+            .write_enable_cache(write_enable_cache),
+            .read_enable_cache(read_enable_cache),
+            .miss_cache(miss_cache));
 
     uart_tx_unit #(CLK_PER_HALF_BIT)tx_unit(.clk(clk),
                                             .clk_uart(clk_uart),

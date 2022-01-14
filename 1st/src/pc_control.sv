@@ -23,9 +23,9 @@
 
 module pc_control (
     input wire [1:0] branchjump, // 2'b00 -> pc += 4
-                                                      // 2'b01 -> branch
-                                                      // 2'b10 -> pc += (signed)imm (JAL)
-                                                      // 2'b11 -> pc = rdata0 + (signed)imm (JALR)
+                                 // 2'b01 -> branch
+                                 // 2'b10 -> pc += (signed)imm (JAL)
+                                 // 2'b11 -> pc = rdata0 + (signed)imm (JALR)
     input wire flag,
     input wire [31:0] pc4,   // pc + 4
     input wire [31:0] pcimm, // pc + imm

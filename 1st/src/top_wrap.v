@@ -27,14 +27,13 @@ module top_wrap #(CLK_PER_HALF_BIT = 86)(
     input wire rstn,
     input wire rxd,
     output wire txd,
-    // DRAM
-    output wire [31:0] addr,
-    output wire [31:0] wdata, 
-    input wire [31:0] rdata, 
-    output wire write_enable_DRAM,
-    output wire read_enable_DRAM,
-    // input wire ready;
-    input wire miss
+    // cache
+    output wire [31:0] addr_cache,
+    output wire [31:0] wdata_cache, 
+    input wire [31:0] rdata_cache, 
+    output wire write_enable_cache,
+    output wire read_enable_cache,
+    input wire miss_cache
     );
 
     top #(CLK_PER_HALF_BIT) top(.clk(clk),
@@ -42,12 +41,12 @@ module top_wrap #(CLK_PER_HALF_BIT = 86)(
                                 .rstn(rstn),
                                 .rxd(rxd),
                                 .txd(txd),
-                                .addr(addr),
-                                .wdata(wdata),
-                                .rdata_DRAM(rdata),
-                                .write_enable_DRAM(write_enable_DRAM),
-                                .read_enable_DRAM(read_enable_DRAM),
-                                .miss(miss));
+                                .addr_cache(addr_cache),
+                                .wdata_cache(wdata_cache),
+                                .rdata_cache(rdata_cache),
+                                .write_enable_cache(write_enable_cache),
+                                .read_enable_cache(read_enable_cache),
+                                .miss_cache(miss_cache));
                                 
 endmodule
 `default_nettype wire
