@@ -24,8 +24,8 @@
 module fpu(
     input wire clk,
     input wire rstn,
-    /* verilator lint_off UNUSED */ input wire [31:0] src0,
-    /* verilator lint_off UNUSED */ input wire [31:0] src1,
+    input wire [31:0] src0,
+    input wire [31:0] src1,
     input wire [3:0] fpuop, 
     output logic [31:0] result,
     output wire fin
@@ -35,14 +35,14 @@ module fpu(
                  fsgnj_res, fsgnjn_res, fsgnjx_res,
                  fcvtws_res, fcvtsw_res; 
 
-    logic  feq_res, fle_res, flt_res;                 
+    logic feq_res, fle_res, flt_res;                 
     logic ovf0, ovf1;
 
-    fadd fadd(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fadd_res), .overflow(ovf0));
-    fsub fsub(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsub_res), .ovf(ovf1));
-    fmul fmul(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fmul_res));
-    fdiv fdiv(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fdiv_res));
-    fsqrt fsqrt(.clk(clk), .rstn(rstn), .x(src0), .y(fsqrt_res));
+    fadd_3 fadd(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fadd_res), .ovf(ovf0));
+    fsub_3 fsub(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsub_res), .ovf(ovf1));
+    fmul_3 fmul(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fmul_res));
+    fdiv_10 fdiv(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fdiv_res));
+    fsqrt_7 fsqrt(.clk(clk), .rstn(rstn), .x(src0), .y(fsqrt_res));
     fsgnj fsgnj(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnj_res));
     fsgnjn fsgnjn(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnjn_res));
     fsgnjx fsgnjx(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnjx_res));
@@ -51,6 +51,24 @@ module fpu(
     flt flt(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(flt_res));
     fcvtsw fcvtsw(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtsw_res));
     fcvtws fcvtws(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtws_res));
+
+    logic [3:0] state;
+
+    always_ff @(posedge clk) begin
+        if (~rstn) begin
+            state <= 4'b0;
+        end else begin
+            if (state == 4'b0) begin
+                if (fpuop == 4'b0000 || fpuop == 4'b0001 || fpuop == 4'b0010 || fpuop == 4'b0011 || fpuop == 4'b0100) begin
+                    state <= state + 4'b1;
+                end
+            end else if (fin == 1'b1) begin
+                state <= 4'b0;
+            end else begin
+                state <= state + 4'b1;
+            end
+        end
+    end
 
     always_comb begin
         case (fpuop)
@@ -71,7 +89,12 @@ module fpu(
         endcase
     end
 
-    assign fin = 1'b1;
+    assign fin = (fpuop == 4'b0000) ? (state == 4'd3 ? 1'b1 : 1'b0):
+                 (fpuop == 4'b0001) ? (state == 4'd3 ? 1'b1 : 1'b0):
+                 (fpuop == 4'b0010) ? (state == 4'd3 ? 1'b1 : 1'b0):
+                 (fpuop == 4'b0011) ? (state == 4'd10 ? 1'b1 : 1'b0):
+                 (fpuop == 4'b0100) ? (state == 4'd7 ? 1'b1 : 1'b0):
+                 1'b1;
     // fin == 1'b1 <-> result is valid
 endmodule
 `default_nettype wire

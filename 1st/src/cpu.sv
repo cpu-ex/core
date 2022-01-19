@@ -139,7 +139,7 @@ module cpu(
     logic [31:0] rdata1_DE_reg;
     always_ff @(posedge clk) begin
         if (~(rstn && exec_rstn)) begin
-            inst_DE_reg <= '{default : '0};
+            inst_DE_reg <= '{default : '0, fpuop: 4'b1101};
             rdata0_DE_reg <= 5'b0;
             rdata1_DE_reg <= 5'b0;
         end else begin
@@ -222,7 +222,7 @@ module cpu(
     logic [31:0] regwdata_MW_reg;
     always_ff @(posedge clk) begin
         if (~(rstn && write_rstn)) begin
-            inst_MW_reg <= '{default : '0};
+            inst_MW_reg <= '{default : '0, fpuop : 4'b1101};
             regwdata_MW_reg <= 32'b0;
         end else begin
             if (write_enable) begin
