@@ -34,7 +34,6 @@ module fpu(
     logic [31:0] fadd_res, fsub_res, fmul_res, fdiv_res, fsqrt_res,
                  fsgnj_res, fsgnjn_res, fsgnjx_res,
                  fcvtws_res, fcvtsw_res; 
-
     logic feq_res, fle_res, flt_res;                 
     logic ovf0, ovf1;
 
@@ -93,8 +92,9 @@ module fpu(
                  (fpuop == 4'b0001) ? (state == 4'd3 ? 1'b1 : 1'b0):
                  (fpuop == 4'b0010) ? (state == 4'd3 ? 1'b1 : 1'b0):
                  (fpuop == 4'b0011) ? (state == 4'd10 ? 1'b1 : 1'b0):
-                 (fpuop == 4'b0100) ? (state == 4'd7 ? 1'b1 : 1'b0):
+                 (fpuop == 4'b0100) ? (state == 4'd8 ? 1'b1 : 1'b0):
                  1'b1;
     // fin == 1'b1 <-> result is valid
 endmodule
+
 `default_nettype wire
