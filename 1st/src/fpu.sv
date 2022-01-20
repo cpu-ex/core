@@ -34,6 +34,7 @@ module fpu(
     logic [31:0] fadd_res, fsub_res, fmul_res, fdiv_res, fsqrt_res,
                  fsgnj_res, fsgnjn_res, fsgnjx_res,
                  fcvtws_res, fcvtsw_res; 
+
     logic feq_res, fle_res, flt_res;                 
     logic ovf0, ovf1;
 
@@ -70,7 +71,7 @@ module fpu(
     end
 
     always_comb begin
-        case (fpuop)
+        unique case (fpuop)
             4'b0000: result = fadd_res; 
             4'b0001: result = fsub_res; 
             4'b0010: result = fmul_res; 

@@ -16,6 +16,7 @@ typedef struct packed {
     logic [1:0] branchjump;
     logic [3:0] aluop;
     logic [3:0] fpuop;
+    logic [1:0] branchop;
     logic [1:0] src0;
     logic [1:0] src1;
     logic regwrite;

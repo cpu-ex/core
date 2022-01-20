@@ -22,7 +22,9 @@ module decode
 
     output Inst inst,
     output logic [31:0] rdata0,
-    output logic [31:0] rdata1);
+    output logic [31:0] rdata1,
+    output logic [31:0] src0,
+    output logic [31:0] src1);
      
     logic rs0flag, rs1flag, rdflag;
     wire [6:0] opcode = instr[6:0];
@@ -43,6 +45,7 @@ module decode
                                    .branchjump(inst.branchjump),
                                    .aluop(inst.aluop),
                                    .fpuop(inst.fpuop),
+                                   .branchop(inst.branchop),
                                    .src0(inst.src0),
                                    .src1(inst.src1),
                                    .regwrite(inst.regwrite),
@@ -61,7 +64,7 @@ module decode
     assign inst.rs1 = rs1_;
     assign inst.rd = rd_;
     assign inst.pc = pc;
-
+        
     // forwarding
     mux4 rdata0mux4(.data0(rs0data),
                     .data1(regwdataE),
@@ -77,6 +80,20 @@ module decode
                     .data3(32'b0),
                     .s(forward1),
                     .data(rdata1));
+
+    mux4 src0mux4(.data0(rdata0),
+                  .data1(32'b0),
+                  .data2(pc),
+                  .data3(32'b0),
+                  .s(inst.src0),
+                  .data(src0));
+
+    mux4 src1mux4(.data0(rdata1),
+                  .data1(32'b100),
+                  .data2(inst.imm),
+                  .data3(32'b0),
+                  .s(inst.src1),
+                  .data(src1));
 
     assign fin = 1'b1;
 

@@ -33,6 +33,7 @@ module single_cycle_control(
     output logic [1:0] branchjump, 
     output logic [3:0] aluop,
     output logic [3:0] fpuop,
+    output logic [1:0] branchop,
     output logic [1:0] src0,
     output logic [1:0] src1,
     output logic regwrite,
@@ -212,11 +213,7 @@ module single_cycle_control(
     // 4'b0110 -> <<
     // 4'b0111 -> >>
     // 4'b1000 -> >>>
-    // 4'b1001 -> bne
-    // 4'b1010 -> blt
-    // 4'b1011 -> bge
-    // default -> 
-    assign aluop = (i_sub || i_beq)  ? 4'b0001:
+    assign aluop = (i_sub)  ? 4'b0001:
                    (i_slt || i_slti) ? 4'b0010:
                    (i_xor || i_xori) ? 4'b0011:
                    (i_and || i_andi) ? 4'b0100:
@@ -224,10 +221,17 @@ module single_cycle_control(
                    (i_sll || i_slli) ? 4'b0110:
                    (i_srl || i_srli) ? 4'b0111:
                    (i_sra || i_srai) ? 4'b1000:
-                   i_bne ? 4'b1001:
-                   i_blt ? 4'b1010:
-                   i_bge ? 4'b1011:
                    4'b0000;
+
+    // branchop
+    // 2'b00 -> beq
+    // 2'b01 -> bne
+    // 2'b10 -> blt
+    // 2'b11 -> bge
+    assign branchop = i_bne ? 2'b01:
+                      i_blt ? 2'b10:
+                      i_bge ? 2'b11:
+                      2'b00;
 
     // fpuop
     // 4'b0000 -> fadd
