@@ -49,7 +49,7 @@ module fpu(
     feq feq(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(feq_res));
     fle fle(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fle_res));
     flt flt(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(flt_res));
-    fcvtsw fcvtsw(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtsw_res));
+    fcvtsw_1 fcvtsw(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtsw_res));
     fcvtws fcvtws(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtws_res));
 
     logic [3:0] state;
@@ -59,7 +59,7 @@ module fpu(
             state <= 4'b0;
         end else begin
             if (state == 4'b0) begin
-                if (fpuop == 4'b0000 || fpuop == 4'b0001 || fpuop == 4'b0010 || fpuop == 4'b0011 || fpuop == 4'b0100) begin
+                if (fpuop == 4'b0000 || fpuop == 4'b0001 || fpuop == 4'b0010 || fpuop == 4'b0011 || fpuop == 4'b0100 || fpuop == 4'b1100) begin
                     state <= state + 4'b1;
                 end
             end else if (fin == 1'b1) begin
@@ -83,8 +83,8 @@ module fpu(
             4'b1000: result = {31'b0, feq_res}; 
             4'b1001: result = {31'b0, fle_res}; 
             4'b1010: result = {31'b0, flt_res}; 
-            //4'b1011: result = fcvtws_res; 
-            //4'b1100: result = fcvtsw_res;
+            4'b1011: result = fcvtws_res; 
+            4'b1100: result = fcvtsw_res;
             default: result = 32'b0; 
         endcase
     end
@@ -94,6 +94,7 @@ module fpu(
                  (fpuop == 4'b0010) ? (state == 4'd3 ? 1'b1 : 1'b0):
                  (fpuop == 4'b0011) ? (state == 4'd10 ? 1'b1 : 1'b0):
                  (fpuop == 4'b0100) ? (state == 4'd8 ? 1'b1 : 1'b0):
+                 (fpuop == 4'b1100) ? (state == 4'd1 ? 1'b1 : 1'b0):
                  1'b1;
     // fin == 1'b1 <-> result is valid
 endmodule
