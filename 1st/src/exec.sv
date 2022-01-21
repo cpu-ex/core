@@ -17,7 +17,7 @@ module exec
     input wire [31:0] src1,
     input wire [31:0] rdata0,
     input wire [31:0] rdata1,
-    //input wire flag,
+    input wire flag,
     input Inst inst,
 
     output logic [31:0] pcnext,
@@ -45,11 +45,11 @@ module exec
             .fin(fpu_fin));
     
     // branch
-    logic flag;
-    branch_unit branch_unit(.src0(src0),
-                            .src1(src1),
-                            .branchop(inst.branchop),
-                            .flag(flag));
+//     logic flag;
+//     branch_unit branch_unit(.src0(src0),
+//                             .src1(src1),
+//                             .branchop(inst.branchop),
+//                             .flag(flag));
     
 
     mux2 resultmux2(.data0(aluresult_),
