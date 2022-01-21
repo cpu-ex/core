@@ -24,7 +24,8 @@ module decode
     output logic [31:0] rdata0,
     output logic [31:0] rdata1,
     output logic [31:0] src0,
-    output logic [31:0] src1);
+    output logic [31:0] src1,
+    output logic flag);
      
     logic rs0flag, rs1flag, rdflag;
     wire [6:0] opcode = instr[6:0];
@@ -95,7 +96,33 @@ module decode
                   .s(inst.src1),
                   .data(src1));
 
+    // branch flag calculate
+    branch_unit branch(.src0(src0),
+                       .src1(src1),
+                       .branchop(inst.branchop),
+                       .flag(flag));
+
     assign fin = 1'b1;
+
+endmodule
+
+
+module branch_unit(
+    input wire [31:0] src0,
+    input wire [31:0] src1,
+    input wire [1:0] branchop, 
+    output logic flag
+    );
+
+    always_comb begin
+        unique case (branchop)
+            2'b00: flag = src0 == src1 ? 1'b1 : 1'b0; // BEQ
+            2'b01: flag = src0 == src1 ? 1'b0 : 1'b1;  // BNE
+            2'b10: flag = $signed(src0) <  $signed (src1) ? 1'b1 : 1'b0; // BLT
+            2'b11: flag = $signed(src0) >= $signed (src1) ? 1'b1 : 1'b0; // BGE
+            default: flag = 1'b0;
+        endcase
+    end
 
 endmodule
 `default_nettype wire

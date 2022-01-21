@@ -116,6 +116,7 @@ module cpu(
     logic [31:0] src1_DE;
     logic [31:0] rdata0_DE;
     logic [31:0] rdata1_DE;
+    logic flag_DE;
 
     decode decode(.clk(clk),
                    .rstn(rstn && decode_rstn),
@@ -135,7 +136,8 @@ module cpu(
                    .src0(src0_DE),
                    .src1(src1_DE),
                    .rdata0(rdata0_DE),
-                   .rdata1(rdata1_DE));
+                   .rdata1(rdata1_DE),
+                   .flag(flag_DE));
 
     // DE
     Inst inst_DE_reg;
@@ -143,6 +145,7 @@ module cpu(
     logic [31:0] src1_DE_reg;
     logic [31:0] rdata0_DE_reg;
     logic [31:0] rdata1_DE_reg;
+    logic flag_DE_reg;
     always_ff @(posedge clk) begin
         if (~(rstn && exec_rstn)) begin
             inst_DE_reg <= '{default : '0, fpuop: 4'b1101};
@@ -150,6 +153,7 @@ module cpu(
             src1_DE_reg <= 32'b0;
             rdata0_DE_reg <= 32'b0;
             rdata1_DE_reg <= 32'b0;
+            flag_DE_reg <= 1'b0;
         end else begin
             if (exec_enable) begin
                 inst_DE_reg <= inst_DE;
@@ -157,6 +161,7 @@ module cpu(
                 src1_DE_reg <= src1_DE;
                 rdata0_DE_reg <= rdata0_DE;
                 rdata1_DE_reg <= rdata1_DE;
+                flag_DE_reg <= flag_DE;
             end
         end
     end 
@@ -183,6 +188,7 @@ module cpu(
                .src1(src1_DE_reg),
                .rdata0(rdata0_DE_reg),
                .rdata1(rdata1_DE_reg),
+               .flag(flag_DE_reg),
                .inst(inst_DE_reg),
                .pcnext(pcnext),
                .inst_out(inst_EM),

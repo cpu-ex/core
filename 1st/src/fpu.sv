@@ -83,8 +83,8 @@ module fpu(
             4'b1000: result = {31'b0, feq_res}; 
             4'b1001: result = {31'b0, fle_res}; 
             4'b1010: result = {31'b0, flt_res}; 
-            4'b1011: result = fcvtws_res; 
-            4'b1100: result = fcvtsw_res;
+            //4'b1011: result = fcvtws_res; 
+            //4'b1100: result = fcvtsw_res;
             default: result = 32'b0; 
         endcase
     end
