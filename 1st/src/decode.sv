@@ -145,8 +145,8 @@ module decode
     output logic [31:0] rdata0,
     output logic [31:0] rdata1,
     output logic [31:0] src0,
-    output logic [31:0] src1,//);
-    output logic flag);
+    output logic [31:0] src1);
+   // output logic flag);
      
     logic rs0flag, rs1flag, rdflag;
     wire [6:0] opcode = instr[6:0];
@@ -218,10 +218,10 @@ module decode
                   .data(src1));
 
     // branch flag calculate
-    branch_unit branch(.src0(src0),
-                       .src1(src1),
-                       .branchop(inst.branchop),
-                       .flag(flag));
+    // branch_unit branch(.src0(src0),
+    //                    .src1(src1),
+    //                    .branchop(inst.branchop),
+    //                    .flag(flag));
 
     assign fin = 1'b1;
 
