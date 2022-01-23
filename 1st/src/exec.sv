@@ -13,8 +13,8 @@ module exec
     output logic memread,
     output logic branchjump_miss,
 
-    input wire [31:0] src0,
-    input wire [31:0] src1,
+    //input wire [31:0] src0,
+    //input wire [31:0] src1,
     input wire [31:0] rdata0,
     input wire [31:0] rdata1,
     //input wire flag,
@@ -25,6 +25,21 @@ module exec
     output logic [31:0] aluresult,
     output logic [31:0] result,
     output logic [31:0] rdata1_out);
+
+    (* max_fanout = 50 *)logic [31:0] src0, src1;
+    mux4 src0mux4(.data0(rdata0),
+                  .data1(32'b0),
+                  .data2(inst.pc),
+                  .data3(32'b0),
+                  .s(inst.src0),
+                  .data(src0));
+
+    mux4 src1mux4(.data0(rdata1),
+                  .data1(32'b100),
+                  .data2(inst.imm),
+                  .data3(32'b0),
+                  .s(inst.src1),
+                  .data(src1));
 
     // alu
     logic [31:0] aluresult_;
@@ -38,16 +53,16 @@ module exec
     logic fpu_fin;
     fpu fpu(.clk(clk),
             .rstn(rstn),
-            .src0(src0),
-            .src1(src1),
+            .src0(rdata0),
+            .src1(rdata1),
             .fpuop(inst.fpuop),
             .result(fpuresult),
             .fin(fpu_fin));
     
     // branch
     logic flag;
-    branch_unit branch_unit(.src0(src0),
-                            .src1(src1),
+    branch_unit branch_unit(.src0(rdata0),
+                            .src1(rdata1),
                             .branchop(inst.branchop),
                             .flag(flag));
     
@@ -74,7 +89,7 @@ module exec
                              inst.branchjump == 2'b11 ? 1'b1: // JALR
                              1'b0;
 
-    assign aluresult = src0 + src1; // memaddr
+    assign aluresult = rdata0 + inst.imm; // memaddr
     assign inst_out = inst;
     assign rdata1_out = rdata1;
     assign fin = fpu_fin;

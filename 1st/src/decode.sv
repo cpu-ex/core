@@ -143,9 +143,9 @@ module decode
 
     output Inst inst,
     output logic [31:0] rdata0,
-    output logic [31:0] rdata1,
-    output logic [31:0] src0,
-    output logic [31:0] src1);
+    output logic [31:0] rdata1);
+    //output logic [31:0] src0,
+    // output logic [31:0] src1);
    // output logic flag);
      
     logic rs0flag, rs1flag, rdflag;
@@ -188,34 +188,28 @@ module decode
     assign inst.pc = pc;
         
     // forwarding
-    mux4 rdata0mux4(.data0(rs0data),
-                    .data1(regwdataE),
-                    .data2(regwdataM),
-                    .data3(32'b0),
-                    .s(forward0),
-                    .data(rdata0));
+    assign rdata0 = forward0 == 2'b00 ? rs0data:
+                    forward0 == 2'b01 ? regwdataE:
+                    regwdataM;
 
     // forwarding
-    mux4 rdata1mux4(.data0(rs1data),
-                    .data1(regwdataE),
-                    .data2(regwdataM),
-                    .data3(32'b0),
-                    .s(forward1),
-                    .data(rdata1));
+    assign rdata1 = forward1 == 2'b00 ? rs1data:
+                    forward1 == 2'b01 ? regwdataE:
+                    regwdataM;
 
-    mux4 src0mux4(.data0(rdata0),
-                  .data1(32'b0),
-                  .data2(pc),
-                  .data3(32'b0),
-                  .s(inst.src0),
-                  .data(src0));
+    // mux4 src0mux4(.data0(rdata0),
+    //               .data1(32'b0),
+    //               .data2(pc),
+    //               .data3(32'b0),
+    //               .s(inst.src0),
+    //               .data(src0));
 
-    mux4 src1mux4(.data0(rdata1),
-                  .data1(32'b100),
-                  .data2(inst.imm),
-                  .data3(32'b0),
-                  .s(inst.src1),
-                  .data(src1));
+    // mux4 src1mux4(.data0(rdata1),
+    //               .data1(32'b100),
+    //               .data2(inst.imm),
+    //               .data3(32'b0),
+    //               .s(inst.src1),
+    //               .data(src1));
 
     // branch flag calculate
     // branch_unit branch(.src0(src0),

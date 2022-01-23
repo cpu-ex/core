@@ -48,7 +48,7 @@ module immgen(
     assign imm_j = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
 
     always_comb begin
-        case (instr[6:0])
+        unique case (instr[6:0])
             LUI    : imm = imm_u;
             AUIPC  : imm = imm_u;
             JAL    : imm = imm_j;

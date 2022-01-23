@@ -31,7 +31,7 @@ module pc_control (
     input wire [31:0] pcimm, // pc + imm
     input wire [31:0] pcjalr,
 
-    output wire [31:0] pcnext
+    output logic [31:0] pcnext
     );
 
     assign pcnext = branchjump == 2'b00 ? pc4 :
@@ -39,6 +39,15 @@ module pc_control (
                     branchjump == 2'b11 ? pcjalr :
                     flag == 1'b1 ? pcimm : 
                     pc4; // (flag == 1'b0)
+
+    // always_comb begin
+    //     unique case (branchjump)
+    //         2'b00: pcnext = pc4;
+    //         2'b01: pcnext = (flag == 1'b1 ? pcimm : pc4);
+    //         2'b10: pcnext = pcimm;
+    //         2'b11: pcnext = pcjalr;
+    //     endcase
+    // end
 
 endmodule
 `default_nettype wire
