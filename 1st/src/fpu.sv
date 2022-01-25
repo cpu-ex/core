@@ -37,9 +37,9 @@ module fpu(
 
     logic feq_res, fle_res, flt_res;                 
     logic ovf0, ovf1;
+    wire sign = fpuop == 4'b0000 ? src1[31] : ~src1[31];
 
-    fadd_3 fadd(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fadd_res), .ovf(ovf0));
-    fsub_3 fsub(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsub_res), .ovf(ovf1));
+    fadd_3 fadd(.clk(clk), .rstn(rstn), .x1(src0), .x2({sign,src1[30:0]}), .y(fadd_res), .ovf(ovf0));
     fmul_3 fmul(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fmul_res));
     fdiv_10 fdiv(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fdiv_res));
     fsqrt_7 fsqrt(.clk(clk), .rstn(rstn), .x(src0), .y(fsqrt_res));
@@ -73,7 +73,7 @@ module fpu(
     always_comb begin
         unique case (fpuop)
             4'b0000: result = fadd_res; 
-            4'b0001: result = fsub_res; 
+            4'b0001: result = fadd_res; 
             4'b0010: result = fmul_res; 
             4'b0011: result = fdiv_res; 
             4'b0100: result = fsqrt_res; 
