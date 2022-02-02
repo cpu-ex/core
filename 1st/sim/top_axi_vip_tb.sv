@@ -30,6 +30,11 @@ module top_axi_vip_tb();
     localparam HALF_TMCLK = 5;
     localparam CLK_PER_HALF_BIT = 86;
 
+    logic [7:0] uart_input [2000:0];
+    logic [31:0] uart_input_size;
+    assign uart_input_size = {32'd1300};
+
+    int i;
     logic clk;
     logic rstn;
     logic rxd;
@@ -42,16 +47,16 @@ module top_axi_vip_tb();
     
     task uart(input logic [7:0] data);
         begin
-        #TMBIT rxd = 0;
-        #TMBIT rxd = data[0];
-        #TMBIT rxd = data[1];
-        #TMBIT rxd = data[2];
-        #TMBIT rxd = data[3];
-        #TMBIT rxd = data[4];
-        #TMBIT rxd = data[5];
-        #TMBIT rxd = data[6];
-        #TMBIT rxd = data[7];
-        #TMBIT rxd = 1;
+        #TMBIT txd = 0;
+        #TMBIT txd = data[0];
+        #TMBIT txd = data[1];
+        #TMBIT txd = data[2];
+        #TMBIT txd = data[3];
+        #TMBIT txd = data[4];
+        #TMBIT txd = data[5];
+        #TMBIT txd = data[6];
+        #TMBIT txd = data[7];
+        #TMBIT txd = 1;
         end
     endtask
     
@@ -62,13 +67,18 @@ module top_axi_vip_tb();
     initial begin
         clk = 0;
         rstn = 0;
-        rxd = 1;
+        txd = 1;
 
+        $readmemb("data_mem.mem",uart_input);
         #(HALF_TMCLK*100);
         // wait fifo's reset
         @(posedge clk);
         #2
         rstn = 1;
+
+        for (i=0;i<uart_input_size;i++) begin
+            uart(uart_input[i]);
+        end
 
         #(600 * 1000);
         $finish;
