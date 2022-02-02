@@ -67,4 +67,48 @@ module ram_block_inst(
     // assume raddr != waddr
     // only bootloader have swi instruction  
 endmodule
+
+module ram_block_2p
+  #(parameter ADDR_WIDTH = 8,
+    parameter DATA_WIDTH = 2)
+   (input wire clk,
+    input wire [ADDR_WIDTH-1:0] addr0,
+    input wire enable0,
+    input wire write_enable0,
+    output logic [DATA_WIDTH-1:0] read_data0,
+    input wire [DATA_WIDTH-1:0] write_data0,
+    input wire [ADDR_WIDTH-1:0] addr1,
+    input wire enable1,
+    input wire write_enable1,
+    output logic [DATA_WIDTH-1:0] read_data1,
+    input wire [DATA_WIDTH-1:0] write_data1);
+
+    (* ram_style = "block" *) reg [1:0] ram [(1 << ADDR_WIDTH) - 1:0];
+
+    initial begin
+        for (int i = 0;i < (1 << ADDR_WIDTH); i += 1) begin
+            ram[i] <= '0;
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if (enable0) begin
+            read_data0 <= ram[addr0];
+            if (write_enable0) begin
+                ram[addr0] <= write_data0;
+            end
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if (enable1) begin
+            read_data1 <= ram[addr1];
+            if (write_enable1) begin
+                ram[addr1] <= write_data1;
+            end
+        end
+    end
+
+endmodule
+
 `default_nettype wire

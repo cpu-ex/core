@@ -12,6 +12,9 @@ module exec
     output logic regwrite,
     output logic memread,
     output logic branchjump_miss,
+    // branch prediction
+    output logic taken,
+    output logic update,
 
     input wire [31:0] rdata0,
     input wire [31:0] rdata1,
@@ -82,9 +85,11 @@ module exec
     assign rd = inst.rd;
     assign regwrite = inst.regwrite;
     assign memread = inst.memread;
-    assign branchjump_miss = inst.branchjump == 2'b01 ? (flag != 1'b0): // assume always untaken 
+    assign branchjump_miss = inst.branchjump == 2'b01 ? (flag != inst.prediction): // branch
                              inst.branchjump == 2'b11 ? 1'b1: // JALR
                              1'b0;
+    assign taken = flag;
+    assign update = inst.branchjump == 2'b01; // branch
 
     assign aluresult = rdata0 + inst.imm; // memaddr
     assign inst_out = inst;

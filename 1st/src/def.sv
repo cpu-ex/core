@@ -21,6 +21,7 @@ typedef struct packed {
     logic [1:0] src1;
     logic regwrite;
     logic aluorfpu;
+    logic prediction;
 } Inst;
 
 `endif

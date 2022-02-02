@@ -20,6 +20,7 @@ module decode
 
     input wire [31:0] pc,
     input wire [31:0] instr,
+    input wire prediction,
 
     output Inst inst,
     output logic [31:0] rdata0,
@@ -63,6 +64,7 @@ module decode
     assign inst.rs1 = rs1_;
     assign inst.rd = rd_;
     assign inst.pc = pc;
+    assign inst.prediction = prediction;
         
     // forwarding
     assign rdata0 = forward0 == 2'b00 ? rs0data:
@@ -78,23 +80,4 @@ module decode
 
 endmodule
 
-
-module branch_unit(
-    input wire [31:0] src0,
-    input wire [31:0] src1,
-    input wire [1:0] branchop, 
-    output logic flag
-    );
-
-    always_comb begin
-        unique case (branchop)
-            2'b00: flag = src0 == src1 ? 1'b1 : 1'b0; // BEQ
-            2'b01: flag = src0 == src1 ? 1'b0 : 1'b1;  // BNE
-            2'b10: flag = $signed(src0) <  $signed (src1) ? 1'b1 : 1'b0; // BLT
-            2'b11: flag = $signed(src0) >= $signed (src1) ? 1'b1 : 1'b0; // BGE
-            default: flag = 1'b0;
-        endcase
-    end
-
-endmodule
 `default_nettype wire
