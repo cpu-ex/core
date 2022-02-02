@@ -34,12 +34,16 @@ module mux4
     #(parameter WIDTH = 32)
      (input wire [WIDTH-1:0] data0, data1, data2, data3,
       input wire [1:0] s,
-      output wire [WIDTH-1:0] data);
+      output logic [WIDTH-1:0] data);
 
-    assign data = s == 2'b00 ? data0 :
-                  s == 2'b01 ? data1 :
-                  s == 2'b10 ? data2 :
-                  data3; // s == 2'b11
+    always_comb begin
+        (* parallel_case *) unique case(s)
+            2'b00: data = data0;
+            2'b01: data = data1;
+            2'b10: data = data2;
+            2'b11: data = data3;
+        endcase
+    end
 endmodule
 
 module flop

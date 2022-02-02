@@ -35,7 +35,7 @@ module branch_unit(
     fle fle(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fle_res));
 
     always_comb begin
-        unique case (branchop)
+        (* parallel_case *) unique case (branchop)
             3'b000: flag = src0 == src1 ? 1'b1 : 1'b0;  // BEQ
             3'b001: flag = src0 == src1 ? 1'b0 : 1'b1;  // BNE
             3'b010: flag = $signed(src0) <  $signed (src1) ? 1'b1 : 1'b0; // BLT
