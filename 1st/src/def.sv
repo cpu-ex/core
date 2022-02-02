@@ -22,6 +22,7 @@ typedef struct packed {
     logic regwrite;
     logic aluorfpu;
     logic prediction;
+    logic [7:0] pc_xor_global_history;
 } Inst;
 
 `endif

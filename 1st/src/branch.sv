@@ -40,6 +40,7 @@ module branch_unit(
 
 endmodule
 
+
 module bimodal_predictor
   #(parameter INDEX_WIDTH = 8) // pht size = 2 ^ INDEX_WIDTH
    (input wire clk,
@@ -61,6 +62,80 @@ module bimodal_predictor
 
     // update
     wire  [INDEX_WIDTH-1:0] index_update = pc_update[INDEX_WIDTH+1:2];
+    logic [INDEX_WIDTH-1:0] before_index_update;
+    logic [INDEX_WIDTH-1:0] index_update_mem;
+    logic [1:0] old_update_data, new_update_data;
+    logic state, before_taken;
+    assign index_update_mem = state ? before_index_update : index_update;
+    assign new_update_data = before_taken ? ((old_update_data < 2'd3) ? old_update_data + 2'd1 : old_update_data):
+                                            ((old_update_data > 2'd0) ? old_update_data - 2'd1 : old_update_data);
+
+    always_ff @(posedge clk) begin
+        if (~rstn) begin
+            before_index_update <= '0;
+            state <= 1'b0;
+            before_taken <= 1'b0;
+        end else begin
+            if (update) begin 
+                state <= 1'b1;
+            end else begin
+                state <= 1'b0;
+            end
+            before_taken <= taken;
+            before_index_update <= index_update;
+        end
+    end
+
+
+    ram_block_2p #(.ADDR_WIDTH(INDEX_WIDTH),
+                   .DATA_WIDTH(2)) 
+    pht(.clk(clk),
+        .addr0(index_predict),
+        .enable0(1'b1),
+        .write_enable0(1'b0),
+        .read_data0(predict_data),
+        .write_data0(2'b00),
+        .addr1(index_update_mem),
+        .enable1(1'b1),
+        .write_enable1(state),
+        .read_data1(old_update_data),
+        .write_data1(new_update_data));
+
+endmodule
+
+module GShare_predictor
+  #(parameter INDEX_WIDTH = 8) // pht size = 2 ^ INDEX_WIDTH
+   (input wire clk,
+    input wire rstn,
+    // predict
+    input wire [31:0] pc_predict,
+    output wire prediction,
+    output wire [INDEX_WIDTH-1:0] pc_xor_global_history,
+    // update
+    input wire [INDEX_WIDTH-1:0] index_update,
+    input wire update,
+    input wire taken);
+    // assume update is not set to 1 continuously
+    //        do not exec branch instruction continuously
+
+    // predict
+    logic [INDEX_WIDTH-1:0] global_history;
+    wire [INDEX_WIDTH-1:0] index_predict = pc_predict[INDEX_WIDTH+1:2] ^ global_history;
+    assign pc_xor_global_history = index_predict;
+    always_ff @(posedge clk) begin
+        if (~rstn) begin
+            global_history <= '0;
+        end else begin
+            if (update) begin
+                global_history <= {global_history[INDEX_WIDTH-2:0], taken};
+            end
+        end
+    end
+
+    logic [1:0] predict_data;
+    assign prediction = (predict_data >= 2'd2);
+
+    // update
     logic [INDEX_WIDTH-1:0] before_index_update;
     logic [INDEX_WIDTH-1:0] index_update_mem;
     logic [1:0] old_update_data, new_update_data;

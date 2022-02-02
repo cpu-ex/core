@@ -69,19 +69,22 @@ module cpu(
     wire write_fin;
 
     logic [31:0] pc_predicated;
+    logic [7:0] pc_xor_global_history;
     logic [31:0] imemraddr;
     logic [31:0] imemrdata;
     logic [31:0] pc_FD;
     logic [31:0] instr_FD;
+    logic [7:0] pc_xor_global_history_FD;
 
     wire prediction, update, taken; 
-    bimodal_predictor bimodal_predictor(.clk(clk),
-                                        .rstn(rstn),
-                                        .pc_predict(imemraddr),
-                                        .prediction(prediction),
-                                        .pc_update(inst_DE_reg.pc),
-                                        .update(update),
-                                        .taken(taken));
+    GShare_predictor Gshare_predictor(.clk(clk),
+                                      .rstn(rstn),
+                                      .pc_predict(imemraddr),
+                                      .prediction(prediction),
+                                      .pc_xor_global_history(pc_xor_global_history),
+                                      .index_update(inst_DE_reg.pc_xor_global_history),
+                                      .update(update),
+                                      .taken(taken));
 
     fetch fetch(.clk(clk),
                 .rstn(rstn && fetch_rstn),
@@ -92,25 +95,30 @@ module cpu(
                 .branchjump_miss(branchjump_miss),
                 .pc_predicated(pc_predicated),
                 .prediction(prediction),
+                .pc_xor_global_history(pc_xor_global_history),
                 .pc(pc),
                 .pcnext(pcnext),
                 .pc_out(pc_FD),
-                .instr(instr_FD));
+                .instr(instr_FD),
+                .pc_xor_global_history_out(pc_xor_global_history_FD));
 
     // FD
     logic [31:0] pc_FD_reg;
     logic [31:0] instr_FD_reg;
     logic prediction_FD_reg;
+    logic [7:0] pc_xor_global_history_FD_reg;
     always_ff @(posedge clk) begin
         if (~(rstn && decode_rstn)) begin
             pc_FD_reg <= 32'b0;
             instr_FD_reg <= 32'b0;
             prediction_FD_reg <= 1'b0;
+            pc_xor_global_history_FD_reg <= 8'b0;
         end else begin
             if (decode_enable) begin
                 pc_FD_reg <= pc_FD;
                 instr_FD_reg <= instr_FD;
                 prediction_FD_reg <= prediction;
+                pc_xor_global_history_FD_reg <= pc_xor_global_history_FD;
             end
         end
     end
@@ -141,6 +149,7 @@ module cpu(
                    .pc(pc_FD_reg),
                    .instr(instr_FD_reg),
                    .prediction(prediction_FD_reg),
+                   .pc_xor_global_history(pc_xor_global_history_FD_reg),
                    .inst(inst_DE),
                    .rdata0(rdata0_DE),
                    .rdata1(rdata1_DE));

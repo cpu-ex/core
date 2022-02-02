@@ -21,6 +21,7 @@ module decode
     input wire [31:0] pc,
     input wire [31:0] instr,
     input wire prediction,
+    input wire [7:0] pc_xor_global_history,
 
     output Inst inst,
     output logic [31:0] rdata0,
@@ -65,6 +66,7 @@ module decode
     assign inst.rd = rd_;
     assign inst.pc = pc;
     assign inst.prediction = prediction;
+    assign inst.pc_xor_global_history = pc_xor_global_history;
         
     // forwarding
     assign rdata0 = forward0 == 2'b00 ? rs0data:

@@ -13,12 +13,14 @@ module fetch
     output wire [31:0] pc_predicated,
     // branch prediction
     input wire prediction,
+    input wire [7:0] pc_xor_global_history,
 
     input wire [31:0] pc,
     input wire [31:0] pcnext,
 
     output logic [31:0] pc_out,
-    output logic [31:0] instr);
+    output logic [31:0] instr,
+    output logic [31:0] pc_xor_global_history_out);
 
     localparam JAL    = 7'b1101111; // jal 
     localparam BRANCH = 7'b1100011; // beq, bne, blt, bge
@@ -26,8 +28,10 @@ module fetch
     always_ff @(posedge clk) begin
         if (~rstn) begin
             pc_out <= 32'b0;
+            pc_xor_global_history_out <= 8'b0;
         end else begin
             pc_out <= imemraddr;
+            pc_xor_global_history_out <= pc_xor_global_history;
         end
     end
 
