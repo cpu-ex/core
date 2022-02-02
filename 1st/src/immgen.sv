@@ -27,18 +27,19 @@ module immgen(
     );
 
     // opcode
-    localparam LUI    = 7'b0110111; 
-    localparam AUIPC  = 7'b0010111; 
-    localparam JAL    = 7'b1101111;
-    localparam JALR   = 7'b1100111; 
-    localparam BRANCH = 7'b1100011; 
-    localparam LOAD   = 7'b0000011; 
-    localparam STORE  = 7'b0100011;
-    localparam CALCI  = 7'b0010011; 
-    localparam CALC   = 7'b0110011; 
-    localparam FLOAD  = 7'b0000111; 
-    localparam FSTORE = 7'b0100111; 
-    localparam F      = 7'b1010011;  
+    localparam LUI     = 7'b0110111; 
+    localparam AUIPC   = 7'b0010111; 
+    localparam JAL     = 7'b1101111;
+    localparam JALR    = 7'b1100111; 
+    localparam BRANCH  = 7'b1100011; 
+    localparam LOAD    = 7'b0000011; 
+    localparam STORE   = 7'b0100011;
+    localparam CALCI   = 7'b0010011; 
+    localparam CALC    = 7'b0110011; 
+    localparam FLOAD   = 7'b0000111; 
+    localparam FSTORE  = 7'b0100111; 
+    localparam F       = 7'b1010011; 
+    localparam FBRANCH = 7'b1100001;
 
     wire [31:0] imm_i, imm_s, imm_b, imm_u, imm_j;
     assign imm_i = {{20{instr[31]}}, instr[31:20]};
@@ -48,7 +49,7 @@ module immgen(
     assign imm_j = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
 
     always_comb begin
-        unique case (instr[6:0])
+        (* parallel_case *) unique case (instr[6:0])
             LUI    : imm = imm_u;
             AUIPC  : imm = imm_u;
             JAL    : imm = imm_j;
@@ -61,6 +62,7 @@ module immgen(
             FLOAD  : imm = imm_i;
             FSTORE : imm = imm_s;
             F      : imm = 32'b0;
+            FBRANCH: imm = imm_b;
             default: imm = 32'b0;
         endcase
     end

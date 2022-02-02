@@ -22,8 +22,9 @@ module fetch
     output logic [31:0] instr,
     output logic [31:0] pc_xor_global_history_out);
 
-    localparam JAL    = 7'b1101111; // jal 
-    localparam BRANCH = 7'b1100011; // beq, bne, blt, bge
+    localparam JAL     = 7'b1101111; // jal 
+    localparam BRANCH  = 7'b1100011; // beq, bne, blt, bge
+    localparam FBRANCH = 7'b1100001; // bfeq, bfle
 
     always_ff @(posedge clk) begin
         if (~rstn) begin
@@ -37,7 +38,7 @@ module fetch
 
     // simple decode to avoid jal stall, branch prediction
     wire i_jal    = (imemrdata[6:0] == JAL);
-    wire i_branch = (imemrdata[6:0] == BRANCH);
+    wire i_branch = (imemrdata[6:0] == BRANCH || imemrdata[6:0] == FBRANCH);
     wire [31:0] imm_j = {{12{imemrdata[31]}}, imemrdata[19:12], imemrdata[20], imemrdata[30:21], 1'b0};
     wire [31:0] imm_b = {{20{imemrdata[31]}}, imemrdata[7], imemrdata[30:25], imemrdata[11:8], 1'b0};
     wire [31:0] pc_jal    = pc_out + imm_j;

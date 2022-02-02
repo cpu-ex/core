@@ -22,18 +22,26 @@
 `timescale 1ns / 1ps
 
 module branch_unit(
+    input wire clk,
+    input wire rstn,
     input wire [31:0] src0,
     input wire [31:0] src1,
     input wire [1:0] branchop, 
     output logic flag
     );
 
+    logic feq_res, fle_res;
+    feq feq(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(feq_res));
+    fle fle(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fle_res));
+
     always_comb begin
         unique case (branchop)
-            2'b00: flag = src0 == src1 ? 1'b1 : 1'b0; // BEQ
-            2'b01: flag = src0 == src1 ? 1'b0 : 1'b1;  // BNE
-            2'b10: flag = $signed(src0) <  $signed (src1) ? 1'b1 : 1'b0; // BLT
-            2'b11: flag = $signed(src0) >= $signed (src1) ? 1'b1 : 1'b0; // BGE
+            3'b000: flag = src0 == src1 ? 1'b1 : 1'b0;  // BEQ
+            3'b001: flag = src0 == src1 ? 1'b0 : 1'b1;  // BNE
+            3'b010: flag = $signed(src0) <  $signed (src1) ? 1'b1 : 1'b0; // BLT
+            3'b011: flag = $signed(src0) >= $signed (src1) ? 1'b1 : 1'b0; // BGE
+            3'b100: flag = feq_res; // FBEQ
+            3'b101: flag = fle_res; // FBLE
             default: flag = 1'b0;
         endcase
     end

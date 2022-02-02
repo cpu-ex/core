@@ -33,7 +33,7 @@ module single_cycle_control(
     output logic [1:0] branchjump, 
     output logic [3:0] aluop,
     output logic [3:0] fpuop,
-    output logic [1:0] branchop,
+    output logic [2:0] branchop,
     output logic [1:0] src0,
     output logic [1:0] src1,
     output logic regwrite,
@@ -60,7 +60,6 @@ module single_cycle_control(
     localparam F      = 7'b1010011; // fadd, fsub, fmul, fdiv, fsqrt, fsgnj, fsgnjn, fsgnjx, 
                                     // feq, fle, flt, fcvt.s.w, fcvt.w.s, fmv.w.x, fmv.x.w
     
-
     // RV32I
     // funct3
     localparam BEQ = 3'b000;
@@ -107,6 +106,14 @@ module single_cycle_control(
     localparam FLT    = 3'b001;
     localparam FLE    = 3'b000;
 
+    // original extension
+    // opcode
+    localparam FBRANCH = 7'b1100001; // bfeq, bfle
+
+    // funct3
+    localparam BFEQ = 3'b000;
+    localparam BFLE = 3'b001;
+
     logic i_lui, i_auipc, i_jal, i_jalr, 
           i_beq, i_bne, i_blt, i_bge, 
           i_lw,
@@ -118,7 +125,8 @@ module single_cycle_control(
           i_fsgnj, i_fsgnjn, i_fsgnjx, 
           i_feq, i_fle, i_flt, 
           i_fcvtws, i_fcvtsw,
-          i_fmvwx, i_fmvxw;
+          i_fmvwx, i_fmvxw,
+          i_bfeq, i_bfle;
 
     assign i_lui = (opcode == LUI);
     assign i_auipc = (opcode == AUIPC);
@@ -173,6 +181,9 @@ module single_cycle_control(
     assign i_fmvwx = (opcode == F && funct7 == FMVWX);
     assign i_fmvxw = (opcode == F && funct7 == FMVXW);
 
+    assign i_bfeq = (opcode == FBRANCH && funct3 == BFEQ);
+    assign i_bfle = (opcode == FBRANCH && funct3 == BFLE);
+
     // memtoreg
     // 1'b0 -> result (alu or fpu)
     // 1'b1 -> memrdata
@@ -198,7 +209,7 @@ module single_cycle_control(
     // 2'b01 -> branch
     // 2'b10 -> pc += (signed)imm (JAL)
     // 2'b11 -> pc = rdata0 + (signed)imm (JALR)
-    assign branchjump = (opcode == BRANCH) ? 2'b01:
+    assign branchjump = (opcode == BRANCH || opcode == FBRANCH) ? 2'b01:
                         i_jal ? 2'b10:
                         i_jalr ? 2'b11:
                         2'b00;
@@ -224,14 +235,18 @@ module single_cycle_control(
                    4'b0000;
 
     // branchop
-    // 2'b00 -> beq
-    // 2'b01 -> bne
-    // 2'b10 -> blt
-    // 2'b11 -> bge
-    assign branchop = i_bne ? 2'b01:
-                      i_blt ? 2'b10:
-                      i_bge ? 2'b11:
-                      2'b00;
+    // 3'b000 -> beq
+    // 3'b001 -> bne
+    // 3'b010 -> blt
+    // 3'b011 -> bge
+    // 3'b100 -> fbeq
+    // 3'b101 -> fble
+    assign branchop = i_bne  ? 3'b001:
+                      i_blt  ? 3'b010:
+                      i_bge  ? 3'b011:
+                      i_bfeq ? 3'b100:
+                      i_bfle ? 3'b101:
+                      3'b000;
 
     // fpuop
     // 4'b0000 -> fadd
@@ -284,7 +299,7 @@ module single_cycle_control(
     // regwrite
     // 1'b0 -> don't write
     // 1'b1 -> write
-    assign regwrite = ~(opcode == BRANCH || i_sw || i_swi || i_fstore);
+    assign regwrite = ~(opcode == BRANCH || opcode == FBRANCH || i_sw || i_swi || i_fstore);
 
     // aluorfpu
     // 1'b0 -> aluresult 
@@ -294,12 +309,12 @@ module single_cycle_control(
     // rs0flag
     // 1'b0 -> integer register
     // 1'b1 -> floating point register
-    assign rs0flag = (opcode == F) && ~i_fcvtsw && ~i_fmvwx;
+    assign rs0flag = (opcode == F || opcode == FBRANCH) && ~i_fcvtsw && ~i_fmvwx;
 
     // rs1flag
     // 1'b0 -> integer register
     // 1'b1 -> floating point register
-    assign rs1flag = (opcode == F) || i_fstore;
+    assign rs1flag = (opcode == F) || (opcode == FBRANCH) || i_fstore;
 
     // rdflag
     // 1'b0 -> integer register

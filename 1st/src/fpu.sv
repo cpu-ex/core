@@ -71,7 +71,7 @@ module fpu(
     end
 
     always_comb begin
-        unique case (fpuop)
+        (* paralle_case *) unique case (fpuop)
             4'b0000: result = fadd_res; 
             4'b0001: result = fadd_res; 
             4'b0010: result = fmul_res; 

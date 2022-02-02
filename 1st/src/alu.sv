@@ -30,7 +30,7 @@ module alu(
     logic [4:0] shamt;
     assign shamt = src1[4:0];
     always_comb begin
-        unique case (aluop)
+        (* parallel_case *) unique case (aluop)
             4'b0000: result = $signed(src0) + $signed(src1); // ADD
             4'b0001: result = $signed(src0) - $signed(src1); // SUB
             4'b0010: result = $signed(src0) < $signed(src1) ? 32'b1 : 32'b0; // SLT
