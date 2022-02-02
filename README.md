@@ -1,11 +1,13 @@
 # core
 
 ## 1st
-+ 5段パイプラインコア、キャッシュあり(core 60Mhz, uart 100Mhz) 
-+ 実行時間 16x16 4.2s 128x128 104s
++ 5段パイプラインコア、キャッシュあり、bimodal preditor(core 60Mhz, uart 100Mhz) 
++ 実行時間 16x16 4.2s 128x128 103s
 
-## 2ndの予定
-+ ??
+## 2nd
++ bimodal predictor
++ vlw
++ ...
 
 ## 仕様
 ### Memory
