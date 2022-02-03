@@ -1,8 +1,8 @@
 # core
 
 ## 1st
-+ 5段パイプラインコア、キャッシュあり、GShare preditor(core 60Mhz, uart 100Mhz) 
-+ 実行時間 16x16 4.14s 128x128 102s
++ 5段パイプラインコア、キャッシュあり、GShare preditor(core 100Mhz, uart 100Mhz) 
++ 実行時間 16x16 3.29s 128x128 76s
 
 ## 2nd
 + GShare predictor
