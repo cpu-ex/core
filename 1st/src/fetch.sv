@@ -24,7 +24,7 @@ module fetch
 
     localparam JAL     = 7'b1101111; // jal 
     localparam BRANCH  = 7'b1100011; // beq, bne, blt, bge
-    localparam FBRANCH = 7'b1100001; // bfeq, bfle
+    localparam FBRANCH = 7'b1100001; // bfeq, bfle, bflt
 
     always_ff @(posedge clk) begin
         if (~rstn) begin

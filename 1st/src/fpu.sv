@@ -93,7 +93,7 @@ module fpu(
                  (fpuop == 4'b0001) ? (state == 4'd3 ? 1'b1 : 1'b0):
                  (fpuop == 4'b0010) ? (state == 4'd3 ? 1'b1 : 1'b0):
                  (fpuop == 4'b0011) ? (state == 4'd10 ? 1'b1 : 1'b0):
-                 (fpuop == 4'b0100) ? (state == 4'd8 ? 1'b1 : 1'b0):
+                 (fpuop == 4'b0100) ? (state == 4'd7 ? 1'b1 : 1'b0):
                  (fpuop == 4'b1100) ? (state == 4'd1 ? 1'b1 : 1'b0):
                  (fpuop == 4'b1011) ? (state == 4'd1 ? 1'b1 : 1'b0):
                  1'b1;

@@ -108,11 +108,12 @@ module single_cycle_control(
 
     // original extension
     // opcode
-    localparam FBRANCH = 7'b1100001; // bfeq, bfle
+    localparam FBRANCH = 7'b1100001; // bfeq, bfle, bflt
 
     // funct3
     localparam BFEQ = 3'b000;
     localparam BFLE = 3'b001;
+    localparam BFLT = 3'b010;
 
     logic i_lui, i_auipc, i_jal, i_jalr, 
           i_beq, i_bne, i_blt, i_bge, 
@@ -126,7 +127,7 @@ module single_cycle_control(
           i_feq, i_fle, i_flt, 
           i_fcvtws, i_fcvtsw,
           i_fmvwx, i_fmvxw,
-          i_bfeq, i_bfle;
+          i_bfeq, i_bfle, i_bflt;
 
     assign i_lui = (opcode == LUI);
     assign i_auipc = (opcode == AUIPC);
@@ -183,6 +184,7 @@ module single_cycle_control(
 
     assign i_bfeq = (opcode == FBRANCH && funct3 == BFEQ);
     assign i_bfle = (opcode == FBRANCH && funct3 == BFLE);
+    assign i_bflt = (opcode == FBRANCH && funct3 == BFLT);
 
     // memtoreg
     // 1'b0 -> result (alu or fpu)
@@ -239,13 +241,15 @@ module single_cycle_control(
     // 3'b001 -> bne
     // 3'b010 -> blt
     // 3'b011 -> bge
-    // 3'b100 -> fbeq
-    // 3'b101 -> fble
+    // 3'b100 -> bfeq
+    // 3'b101 -> bfle
+    // 3'b110 -> bflt
     assign branchop = i_bne  ? 3'b001:
                       i_blt  ? 3'b010:
                       i_bge  ? 3'b011:
                       i_bfeq ? 3'b100:
                       i_bfle ? 3'b101:
+                      i_bflt ? 3'b110:
                       3'b000;
 
     // fpuop

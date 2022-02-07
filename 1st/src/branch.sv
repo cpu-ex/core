@@ -30,9 +30,10 @@ module branch_unit(
     output logic flag
     );
 
-    logic feq_res, fle_res;
+    logic feq_res, fle_res, flt_res;
     feq feq(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(feq_res));
     fle fle(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fle_res));
+    flt flt(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(flt_res));
 
     always_comb begin
         (* parallel_case *) unique case (branchop)
@@ -40,8 +41,9 @@ module branch_unit(
             3'b001: flag = src0 == src1 ? 1'b0 : 1'b1;  // BNE
             3'b010: flag = $signed(src0) <  $signed (src1) ? 1'b1 : 1'b0; // BLT
             3'b011: flag = $signed(src0) >= $signed (src1) ? 1'b1 : 1'b0; // BGE
-            3'b100: flag = feq_res; // FBEQ
-            3'b101: flag = fle_res; // FBLE
+            3'b100: flag = feq_res; // BFEQ
+            3'b101: flag = fle_res; // BFLE
+            3'b110: flag = flt_res; // BFLT
             default: flag = 1'b0;
         endcase
     end
