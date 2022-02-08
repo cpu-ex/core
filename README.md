@@ -29,6 +29,17 @@ Instruction Memory
 
 ### Instruction
 RISC-VのRV32IFの一部と命令メモリに書き込むための命令swi(store word instruction)
+
+### 実行時間予測用パラメータ
++ lwの直後に依存のある命令 +1
++ fadd, fsub, fmul +3
++ fsqrt +7
++ fdiv +10
++ jalr +2
++ branchの予測はPHTのサイズが256bitのGShare predictor, 予測が失敗すると+2
++ lw hit時 +1
++ sw hit時 +1
++ baudrate 576000
  
 ### bootloader
 0x00000000からbootloaderが置かれていて、プログラムを0x00000100にloadする。
