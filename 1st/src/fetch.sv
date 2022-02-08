@@ -9,6 +9,7 @@ module fetch
 
     output logic [31:0] imemraddr,
     input wire [31:0] imemrdata,
+    input wire [31:0] imemrdata1,
     input wire branchjump_miss,
     output wire [31:0] pc_predicated,
     // branch prediction
@@ -20,6 +21,7 @@ module fetch
 
     output logic [31:0] pc_out,
     output logic [31:0] instr,
+    output logic [31:0] instr1,
     output logic [31:0] pc_xor_global_history_out);
 
     localparam JAL     = 7'b1101111; // jal 
@@ -36,9 +38,10 @@ module fetch
         end
     end
 
-    // simple decode to avoid jal stall, branch prediction
+    // simple decode to avoid jal stall, branch prediction, 64bit instruction
     wire i_jal    = (imemrdata[6:0] == JAL);
     wire i_branch = (imemrdata[6:0] == BRANCH || imemrdata[6:0] == FBRANCH);
+    wire i_64     = (imemrdata[0] == 1'b0);
     wire [31:0] imm_j = {{12{imemrdata[31]}}, imemrdata[19:12], imemrdata[20], imemrdata[30:21], 1'b0};
     wire [31:0] imm_b = {{20{imemrdata[31]}}, imemrdata[7], imemrdata[30:25], imemrdata[11:8], 1'b0};
     wire [31:0] pc_jal    = pc_out + imm_j;
@@ -46,6 +49,7 @@ module fetch
 
     assign pc_predicated = i_jal                    ? pc_jal:
                            (i_branch && prediction) ? pc_branch:
+                           i_64                     ? pc + 32'b100:
                            pc; 
 
     assign imemraddr = (~rstn) ? 32'b0:
@@ -54,6 +58,7 @@ module fetch
                        pc_out;                    // otherwise -> stall
 
     assign instr = imemrdata;
+    assign instr1 = imemrdata1;
     assign fin = 1'b1;
 
 endmodule

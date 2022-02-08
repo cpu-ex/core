@@ -23,6 +23,15 @@ typedef struct packed {
     logic aluorfpu;
     logic prediction;
     logic [7:0] pc_xor_global_history;
+
+    // vec lw, sw
+    logic [5:0] reg2;
+    logic [5:0] reg3;
+    logic [5:0] reg4;
+    logic [5:0] reg5;
+    logic [3:0] vecmask;
+    logic vecmode; 
+    logic vec_regwrite;
 } Inst;
 
 `endif
