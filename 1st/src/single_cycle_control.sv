@@ -309,11 +309,14 @@ module single_cycle_control(
                   (i_fmvwx || i_fmvxw ) ? 2'b11:
                   2'b00;
 
-    // regwrite
+    // regwrite (rd)
     // 1'b0 -> don't write
     // 1'b1 -> write
-    assign regwrite = ~(opcode == BRANCH || opcode == FBRANCH || i_sw || i_swi || i_fstore || i_vsw );
+    assign regwrite = ~(opcode == BRANCH || opcode == FBRANCH || i_sw || i_swi || i_fstore || i_vsw || i_vlw );
 
+    // veg_regwrite (rd2, rd3, rd4, rd5)
+    // 1'b0 -> don't write 
+    // 1'b1 -> write 
     assign vec_regwrite = i_vlw;
 
     // aluorfpu
