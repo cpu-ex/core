@@ -112,7 +112,7 @@ module cpu(
 
     // FD
     logic [31:0] pc_FD_reg;
-    logic [31:0] instr_FD_reg;
+    (* max_fanout = 50 *) logic [31:0] instr_FD_reg;
     logic [31:0] instr1_FD_reg;
     logic prediction_FD_reg;
     logic [7:0] pc_xor_global_history_FD_reg;
@@ -197,8 +197,8 @@ module cpu(
 
     // DE
     Inst inst_DE_reg;
-    logic [31:0] rdata0_DE_reg;
-    logic [31:0] rdata1_DE_reg;
+    (* max_fanout = 50 *) logic [31:0] rdata0_DE_reg;
+    (* max_fanout = 50 *) logic [31:0] rdata1_DE_reg;
     logic [31:0] rdata2_DE_reg;
     logic [31:0] rdata3_DE_reg;
     logic [31:0] rdata4_DE_reg;

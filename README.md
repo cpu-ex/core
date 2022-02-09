@@ -1,4 +1,5 @@
 # core
+vivadoのimplementation strategyはPerformance_NetDelay_high
 
 ## 1st
 + 5段パイプラインコア、キャッシュあり、GShare preditor(core 100Mhz, uart 100Mhz) 
