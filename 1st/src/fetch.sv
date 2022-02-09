@@ -49,7 +49,7 @@ module fetch
 
     assign pc_predicated = i_jal                    ? pc_jal:
                            (i_branch && prediction) ? pc_branch:
-                           i_64                     ? pc + 32'b100:
+                           i_64                     ? pc_out + 32'd8:
                            pc; 
 
     assign imemraddr = (~rstn) ? 32'b0:
