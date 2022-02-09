@@ -27,6 +27,7 @@ module write
    );
 
     assign regwdata = regwdata_in;
+    // 5432
     assign regwdata2 = vec_regwdata_in[31:0];
     assign regwdata3 = vec_regwdata_in[63:32];
     assign regwdata4 = vec_regwdata_in[95:64];

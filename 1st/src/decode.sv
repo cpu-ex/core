@@ -100,7 +100,7 @@ module decode
     assign inst.reg3 = reg3;
     assign inst.reg4 = reg4;
     assign inst.reg5 = reg5;
-    assign inst.vecmask = instr[10:7];
+    assign inst.vecmask = {instr[7],instr[8],instr[9],instr[10]}; // 5432
 
     // function [31:0] select_by_forward(
     //     input [2:0] forward,
@@ -206,14 +206,6 @@ module decode
     // assign rdata3 = select_by_forward(forward3, reg3data);
     // assign rdata4 = select_by_forward(forward4, reg4data);
     // assign rdata5 = select_by_forward(forward5, reg5data);
-
-    // todo 
-    // sw reg2, reg3, reg4, reg5 forwarding
-    // function ka
-    // assign rdata2 = reg2data;
-    // assign rdata3 = reg3data;
-    // assign rdata4 = reg4data;
-    // assign rdata5 = reg5data;
 
     assign fin = 1'b1;
 

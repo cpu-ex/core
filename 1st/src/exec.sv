@@ -97,7 +97,7 @@ module exec
     assign update = inst.branchjump == 2'b01; // branch
 
     assign aluresult = rdata0 + inst.imm; // memaddr
-    assign vec_data = {rdata5, rdata4, rdata3, rdata2}; // 2345?
+    assign vec_data = {rdata5, rdata4, rdata3, rdata2}; // 5432
     assign inst_out = inst;
     assign rdata1_out = rdata1;
     assign fin = fpu_fin;

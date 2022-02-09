@@ -86,13 +86,14 @@ module memory
     assign memrdata_ = rdata;
     
     /* --- vec --- */
-    // assign vec_wdata = vec_data;
+    // assign vec_wdata = miss ? vec_data_EM_reg:
+    //                    vec_data; 
     // assign vec_mode = miss ? inst_EM_reg.vecmode:
     //                   inst.vecmode;
     // assign vec_mask = miss ? inst_EM_reg.vec_mask:
     //                   inst.vec_mask;
     // assign vec_memrdata = vec_rdata;
-    localparam _vecrdata = 32'b0;
+    localparam _vecrdata = 128'haaaaaaaa_aaaaaaaa_aaaaaaaa_aaaaaaaa;
     assign vec_memrdata = _vecrdata;
                           
     // 1 idle -> lw or sw

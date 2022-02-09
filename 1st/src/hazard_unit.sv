@@ -52,6 +52,7 @@ module hazard_unit
     //  assign forward4 = forward(rs4D);
     //  assign forward5 = forward(rs5D);
 
+    // expect mask[i] == 0 -> reg_i == x0
     assign forward0 = (rs0D != 0 && rdE  == rs0D && regwriteE)     ? 3'b001:
                       (rs0D != 0 && rdM  == rs0D && regwriteM)     ? 3'b010:
                       (rs0D != 0 && rdM2 == rs0D && vec_regwriteM) ? 3'b011: 
@@ -100,7 +101,8 @@ module hazard_unit
                       (rs5D != 0 && rdM5 == rs5D && vec_regwriteM) ? 3'b110:
                       3'b000;
     
-    // todo lwstall
+    // lwstall
+    // expect mask[i] == 0 -> reg_i == x0
     wire SS_depend = (rs0D != 0 && rs0D == rdE) || 
                      (rs1D != 0 && rs1D == rdE);
     wire SV_depend = (rs2D != 0 && rs2D == rdE) || 

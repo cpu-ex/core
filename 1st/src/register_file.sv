@@ -64,6 +64,7 @@ module register_file(
                 reg_file[waddr] <= wdata;
             end 
             if (vecwe) begin
+                // expect mask[i] == 0 -> waddr_i == x0
                 reg_file[waddr2] <= waddr2 == 0 ? 32'b0 : wdata2;
                 reg_file[waddr3] <= waddr3 == 0 ? 32'b0 : wdata3;
                 reg_file[waddr4] <= waddr4 == 0 ? 32'b0 : wdata4;
