@@ -26,7 +26,7 @@ module branch_unit(
     input wire rstn,
     input wire [31:0] src0,
     input wire [31:0] src1,
-    input wire [1:0] branchop, 
+    input wire [2:0] branchop, 
     output logic flag
     );
 
