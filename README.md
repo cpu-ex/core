@@ -3,7 +3,7 @@ vivadoのimplementation strategyはPerformance_NetDelay_high
 
 ## 1st
 + 5段パイプラインコア、キャッシュあり、GShare preditor(core 100Mhz, uart 100Mhz) 
-+ 実行時間 16x16 2.8s 128x128 55s
++ 実行時間 16x16 2.8s 128x128 48s
 
 ## 2nd
 + GShare predictor
@@ -40,7 +40,7 @@ RISC-VのRV32IFの一部と命令メモリに書き込むための命令swi(stor
 + branchの予測はPHTのサイズが256bitのGShare predictor, 予測が失敗すると+2
 + lw hit時 +1
 + sw hit時 +1
-+ baudrate 576000
++ baudrate 2304000
  
 ### bootloader
 0x00000000からbootloaderが置かれていて、プログラムを0x00000100にloadする。
