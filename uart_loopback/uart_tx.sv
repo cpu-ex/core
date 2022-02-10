@@ -21,8 +21,8 @@
 
 
 `default_nettype none
-// 11520000 baud rate
-// 100Mhz -> clk_per_half_bit = 4.3
+// 2304000 baud rate
+// 100Mhz -> clk_per_half_bit = 21
 module uart_tx #(CLK_PER_HALF_BIT = 4) (
                input wire [7:0] sdata,
                input wire       tx_start,
@@ -37,6 +37,7 @@ module uart_tx #(CLK_PER_HALF_BIT = 4) (
 	logic [7:0]                  txbuf;
 	logic [3:0]                  status;
 	logic [31:0]                 counter;
+	(*ASYNC_REG = "true"*) reg [2:0] sync_reg;
 	
 	localparam s_idle = 4'd0;
 	localparam s_start_bit = 4'd1;
@@ -57,38 +58,32 @@ module uart_tx #(CLK_PER_HALF_BIT = 4) (
 			txbuf <= 8'b0;
 			tx_busy <= 1'b0;
 			txd <= 1'b1;
+			sync_reg <= 3'b111;
 		end else begin
+			txd <= sync_reg[2];
+			sync_reg[2:1] <= sync_reg[1:0];
 			if (status == s_idle) begin
 				if (tx_start) begin
 					counter <= 32'b0;
 					status <= s_start_bit;
 					txbuf <= sdata;
 					tx_busy <= 1'b1;
-					txd <= 1'b0;
+					sync_reg[0] <= 1'b0;
 				end
 			end else if (status == s_stop_bit) begin
 				if (counter == e_clk_bit) begin
 					counter <= 32'b0;
 					status <= s_idle;
 					tx_busy <= 1'b0;
-					txd <= 1'b1;
+					sync_reg[0] <= 1'b1;
 				end else begin
 					counter <= counter + 32'b1;
 				end
-			end else if (status[0] == 1'b0) begin
-				if (counter == e_clk_bit + 32'b1) begin
-					counter <= 32'b0;
-					status <= status + 4'b1;
-					txd <= txbuf[0];
-					txbuf <= {1'b1, txbuf[7:1]};
-				end else begin
-					counter <= counter + 32'b1;
-				end
-			end else begin // status[0] == 1'b1
+			end else begin
 				if (counter == e_clk_bit) begin
 					counter <= 32'b0;
 					status <= status + 4'b1;
-					txd <= txbuf[0];
+					sync_reg[0] <= txbuf[0];
 					txbuf <= {1'b1, txbuf[7:1]};
 				end else begin
 					counter <= counter + 32'b1;
@@ -99,4 +94,3 @@ module uart_tx #(CLK_PER_HALF_BIT = 4) (
    
 endmodule // uart_tx
 `default_nettype wire
-

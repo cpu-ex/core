@@ -19,9 +19,9 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 `default_nettype none
-// 11520000 baud rate
-// 100Mhz -> clk_per_half_bit = 4.3
-module uart_rx #(CLK_PER_HALF_BIT = 4) (
+// 2304000 baud rate
+// 100Mhz -> clk_per_half_bit = 21
+module uart_rx #(CLK_PER_HALF_BIT = 21) (
                output logic [7:0] rdata,
                output logic       rdata_ready,
                output logic       ferr,
@@ -35,6 +35,7 @@ module uart_rx #(CLK_PER_HALF_BIT = 4) (
     logic [7:0]                  rxbuf;
     logic [3:0]                  status;
     logic [31:0]                 counter;
+    (*ASYNC_REG = "true"*) reg [2:0] sync_reg;
    
     localparam s_idle = 4'd0;
     localparam s_start_bit = 4'd1;
@@ -56,9 +57,12 @@ module uart_rx #(CLK_PER_HALF_BIT = 4) (
             rdata <= 8'b0;
             rdata_ready <= 1'b0;
             ferr <= 1'b0;
+            sync_reg <= 3'b111;
         end else begin
+            sync_reg[0] <= rxd;
+            sync_reg[2:1] <= sync_reg[1:0];
             if (status == s_idle) begin
-                if (~rxd) begin
+                if (~sync_reg[2]) begin
                     status <= s_start_bit;
                     counter <= 32'b0;
                 end 
@@ -76,24 +80,15 @@ module uart_rx #(CLK_PER_HALF_BIT = 4) (
                     counter <= 32'b0;
                     rdata <= rxbuf;
                     rdata_ready <= 1'b1;
-                    ferr <= ~rxd;
+                    ferr <= ~sync_reg[2];
                 end else begin
                     counter <= counter + 32'b1;
                 end
-            end else if (status[0] == 1'b1) begin
-                if (counter == e_clk_bit + 32'b1) begin
-                    status <= status + 4'b1;
-                    counter <= 32'b0;
-                    rxbuf[7] <= rxd;
-                    rxbuf[6:0] <= rxbuf[7:1];
-                end else begin
-                    counter <= counter + 32'b1;
-                end
-            end else begin // status[0] == 1'b0
+            end else begin
                 if (counter == e_clk_bit) begin
                     status <= status + 4'b1;
                     counter <= 32'b0;
-                    rxbuf[7] <= rxd;
+                    rxbuf[7] <= sync_reg[2];
                     rxbuf[6:0] <= rxbuf[7:1];
                 end else begin
                     counter <= counter + 32'b1;
