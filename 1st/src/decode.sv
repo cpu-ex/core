@@ -47,7 +47,8 @@ module decode
     output logic [31:0] rdata2,
     output logic [31:0] rdata3,
     output logic [31:0] rdata4,
-    output logic [31:0] rdata5);
+    output logic [31:0] rdata5,
+    output logic flag);
      
     logic rs0flag, rs1flag, rdflag;
     wire [6:0] opcode = instr[6:0];
@@ -206,6 +207,11 @@ module decode
     // assign rdata3 = select_by_forward(forward3, reg3data);
     // assign rdata4 = select_by_forward(forward4, reg4data);
     // assign rdata5 = select_by_forward(forward5, reg5data);
+    
+    branch_unit branch_unit(.src0(rdata0),
+                            .src1(rdata1),
+                            .branchop(inst.branchop),
+                            .flag(flag));
 
     assign fin = 1'b1;
 

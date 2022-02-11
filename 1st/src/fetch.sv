@@ -22,7 +22,7 @@ module fetch
     output logic [31:0] pc_out,
     output logic [31:0] instr,
     output logic [31:0] instr1,
-    output logic [31:0] pc_xor_global_history_out);
+    output logic [7:0] pc_xor_global_history_out);
 
     localparam JAL     = 7'b1101111; // jal 
     localparam BRANCH  = 7'b1100011; // beq, bne, blt, bge
@@ -47,9 +47,9 @@ module fetch
     wire [31:0] pc_jal    = pc_out + imm_j;
     wire [31:0] pc_branch = pc_out + imm_b;
 
-    assign pc_predicated = i_jal                    ? pc_jal:
+    assign pc_predicated = i_64                     ? pc_out + 32'd8:
+                           i_jal                    ? pc_jal:
                            (i_branch && prediction) ? pc_branch:
-                           i_64                     ? pc_out + 32'd8:
                            pc; 
 
     assign imemraddr = (~rstn) ? 32'b0:
