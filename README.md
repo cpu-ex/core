@@ -2,13 +2,10 @@
 vivadoのimplementation strategyはPerformance_NetDelay_high
 
 ## 1st
-+ 5段パイプラインコア、キャッシュあり、GShare preditor(core 100Mhz, uart 100Mhz) 
++ 5段パイプラインコア、キャッシュあり(core 100Mhz, uart 100Mhz) 
 + 実行時間 16x16 2.8s 128x128 47s
-
-## 2nd
 + GShare predictor
 + vlw
-+ ...
 
 ## 仕様
 ### Memory
@@ -20,7 +17,7 @@ Data Memory(2^27 byte)
 MMIO
 + 0x3FFFFFC: uart_addr
 
-uart_in_valid, uart_out_validは用意せず、一つのart_addrのみ使う。
+uart_in_valid, uart_out_validは用意せず、一つのuart_addrのみ使う。
 uart_addrにlwしたら、送信、uart_addrにswしたら受信。
 送信や受信ができない場合はstallする。
 
@@ -29,13 +26,16 @@ Instruction Memory
 + サイズは2 ^ 17 byte
 
 ### Instruction
-RISC-VのRV32IFの一部と命令メモリに書き込むための命令swi(store word instruction)
+RISC-VのRV32IFの一部と命令メモリに書き込むための命令swi(store word instruction)と独自拡張
 
 ### 実行時間予測用パラメータ
 + lwの直後に依存のある命令 +1
-+ fadd, fsub, fmul +3
++ fadd, fsub +3 
++ fmul +2
 + fsqrt +7
-+ fdiv +10
++ fdiv +11
++ fcvtsw +2
++ fcvtws +1
 + jalr +2
 + branchの予測はPHTのサイズが256bitのGShare predictor, 予測が失敗すると+2
 + lw hit時 +1
