@@ -3,7 +3,7 @@ vivadoのimplementation strategyはPerformance_NetDelay_high
 
 ## 1st
 + 5段パイプラインコア、キャッシュあり、GShare preditor(core 100Mhz, uart 100Mhz) 
-+ 実行時間 16x16 2.8s 128x128 48s
++ 実行時間 16x16 2.8s 128x128 47s
 
 ## 2nd
 + GShare predictor
