@@ -87,6 +87,7 @@ module decode
 
     // imm
     immgen immgen(.instr(instr),
+                  .instr1(instr1),
                   .imm(inst.imm));
 
     assign rs0 = rs0_;
@@ -102,32 +103,6 @@ module decode
     assign inst.reg4 = reg4;
     assign inst.reg5 = reg5;
     assign inst.vecmask = {instr[7],instr[8],instr[9],instr[10]}; // 5432
-
-    // function [31:0] select_by_forward(
-    //     input [2:0] forward,
-    //     input [31:0] reg_file_data
-    // );
-    // begin
-    //     (* parallel_case *) unique case (forward)
-    //     3'b000: select_by_forward = reg_file_data;
-    //     3'b001: select_by_forward = regwdataE;
-    //     3'b010: select_by_forward = regwdataM;
-    //     3'b011: select_by_forward = regwdataM2;
-    //     3'b100: select_by_forward = regwdataM3;
-    //     3'b101: select_by_forward = regwdataM4;
-    //     3'b110: select_by_forward = regwdataM5;
-    //     endcase
-    // end
-    // endfunction
-        
-    // forwarding
-    // assign rdata0 = forward0 == 3'b000 ? rs0data:
-    //                 forward0 == 3'b001 ? regwdataE:
-    //                 forward0 == 3'b010 ? regwdataM:
-    //                 forward0 == 3'b011 ? regwdataM2:
-    //                 forward0 == 3'b100 ? regwdataM3:
-    //                 forward0 == 3'b101 ? regwdataM4:
-    //                 regwdataM5;
 
     // forwarding
     always_comb begin
@@ -201,13 +176,8 @@ module decode
         3'b110: rdata5 = regwdataM5;
         endcase
     end
-    // assign rdata0 = select_by_forward(forward0, rs0data);
-    // assign rdata1 = select_by_forward(forward1, rs1data);
-    // assign rdata2 = select_by_forward(forward2, reg2data);
-    // assign rdata3 = select_by_forward(forward3, reg3data);
-    // assign rdata4 = select_by_forward(forward4, reg4data);
-    // assign rdata5 = select_by_forward(forward5, reg5data);
     
+    // branch
     branch_unit branch_unit(.src0(rdata0),
                             .src1(rdata1),
                             .branchop(inst.branchop),

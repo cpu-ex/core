@@ -35,23 +35,6 @@ module hazard_unit
     output logic lwstall
    );
 
-    //  function [2:0] forward(input [5:0] rs);
-    //  assign forward = (rs != 0 && rdE  == rs && regwriteE)     ? 3'b001:
-    //                   (rs != 0 && rdM  == rs && regwriteM)     ? 3'b010:
-    //                   (rs != 0 && rdM2 == rs && vec_regwriteM) ? 3'b011: 
-    //                   (rs != 0 && rdM3 == rs && vec_regwriteM) ? 3'b100:
-    //                   (rs != 0 && rdM4 == rs && vec_regwriteM) ? 3'b101:
-    //                   (rs != 0 && rdM5 == rs && vec_regwriteM) ? 3'b110:
-    //                   3'b000;
-    //  endfunction
-
-    //  assign forward0 = forward(rs0D);
-    //  assign forward1 = forward(rs1D);
-    //  assign forward2 = forward(rs2D);
-    //  assign forward3 = forward(rs3D);
-    //  assign forward4 = forward(rs4D);
-    //  assign forward5 = forward(rs5D);
-
     // expect mask[i] == 0 -> reg_i == x0
     wire rs0D_neqz = (rs0D != 0);
     wire rs1D_neqz = (rs1D != 0);

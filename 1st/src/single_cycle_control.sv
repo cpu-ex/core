@@ -114,6 +114,7 @@ module single_cycle_control(
     localparam FBRANCH = 7'b1100001; // bfeq, bfle, bflt
     localparam VLW     = 7'b1000000; // vlw
     localparam VSW     = 7'b1000010; // vsw
+    localparam FLI     = 7'b1000100; // fli
 
     // funct3
     localparam BFEQ = 3'b000;
@@ -133,7 +134,8 @@ module single_cycle_control(
           i_fcvtws, i_fcvtsw,
           i_fmvwx, i_fmvxw,
           i_bfeq, i_bfle, i_bflt,
-          i_vlw;// i_vsw;
+          i_vlw,// i_vsw
+          i_fli;
 
     assign i_lui = (opcode == LUI);
     assign i_auipc = (opcode == AUIPC);
@@ -194,6 +196,8 @@ module single_cycle_control(
 
     assign i_vlw = (opcode == VLW);
     assign i_vsw = (opcode == VSW);
+
+    assign i_fli = (opcode == FLI);
 
     // memtoreg
     // 1'b0 -> result (alu or fpu)
@@ -293,9 +297,9 @@ module single_cycle_control(
 
     // src0
     // 2'b00 -> rdata0(from register file)
-    // 2'b01 -> 0 (LUI)
+    // 2'b01 -> 0 (LUI,FLI)
     // 2'b10 -> pc
-    assign src0 = i_lui ? 2'b01:
+    assign src0 = (i_lui || i_fli) ? 2'b01:
                   (i_auipc || i_jal || i_jalr) ? 2'b10:
                   2'b00;
 
@@ -305,14 +309,14 @@ module single_cycle_control(
     // 2'b10 -> imm
     // 2'b11 -> 0
     assign src1 = (i_jal || i_jalr) ? 2'b01:
-                  (i_auipc || i_lui || i_lw || i_sw || i_swi || opcode == CALCI || i_fload || i_fstore || i_vlw || i_vsw) ? 2'b10:
+                  (i_auipc || i_lui || i_lw || i_sw || i_swi || opcode == CALCI || i_fload || i_fstore || i_vlw || i_vsw || i_fli) ? 2'b10:
                   (i_fmvwx || i_fmvxw ) ? 2'b11:
                   2'b00;
 
     // regwrite (rd)
     // 1'b0 -> don't write
     // 1'b1 -> write
-    assign regwrite = ~(opcode == BRANCH || opcode == FBRANCH || i_sw || i_swi || i_fstore || i_vsw || i_vlw );
+    assign regwrite = ~(opcode == BRANCH || opcode == FBRANCH || i_sw || i_swi || i_fstore || i_vsw || i_vlw);
 
     // veg_regwrite (rd2, rd3, rd4, rd5)
     // 1'b0 -> don't write 
@@ -337,7 +341,7 @@ module single_cycle_control(
     // rdflag
     // 1'b0 -> integer register
     // 1'b1 -> floating point register
-    assign rdflag = ((opcode == F) && ~i_fcvtws && ~i_fmvxw && ~i_feq && ~i_fle && ~i_flt) || i_fload;
+    assign rdflag = ((opcode == F) && ~i_fcvtws && ~i_fmvxw && ~i_feq && ~i_fle && ~i_flt) || i_fload || i_fli;
 
     assign vecmode = (i_vlw || i_vsw);
 

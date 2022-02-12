@@ -367,12 +367,6 @@ module cpu(
                 .vec_regwdata_in(vec_memrdata_MW_reg));
                 
     // inst memory
-    // ram_block_inst imem(.clk(clk), 
-    //                     .we(imemwrite), 
-    //                     .raddr(imemraddr[16:2]),
-    //                     .waddr(imemwaddr[16:2]),  
-    //                     .di(imemwdata),
-    //                     .dout(imemrdata)); 
     logic [14:0] addr;
     assign addr = imemwrite ? imemwaddr[16:2] : (imemraddr[16:2] + 15'b1);
     // for 64bit instruction, we need imemdata[imemraddr+1]
@@ -458,7 +452,6 @@ module cpu(
             pc <= 32'b0;
         end else begin
             if (fetch_enable) begin // ~stall && ~flush
-                //pc <= (i_jal ? pc_jal : pc) + 32'b100;
                 pc <= pc_predicated + 32'b100;
             end else if (branchjump_miss) begin // branchjump miss
                 pc <= pcnext + 32'b100;

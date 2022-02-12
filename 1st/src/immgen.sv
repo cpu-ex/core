@@ -23,6 +23,7 @@
 
 module immgen(
     input wire [31:0] instr,
+    input wire [31:0] instr1,
     output logic [31:0] imm
     );
 
@@ -42,13 +43,15 @@ module immgen(
     localparam FBRANCH = 7'b1100001;
     localparam VLW     = 7'b1000000;
     localparam VSW     = 7'b1000010;
+    localparam FLI     = 7'b1000100;
 
-    wire [31:0] imm_i, imm_s, imm_b, imm_u, imm_j;
+    wire [31:0] imm_i, imm_s, imm_b, imm_u, imm_j, imm_f;
     assign imm_i = {{20{instr[31]}}, instr[31:20]};
     assign imm_s = {{20{instr[31]}}, instr[31:25], instr[11:7]};
     assign imm_b = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};
     assign imm_u = {instr[31], instr[30:12], 12'b0};
     assign imm_j = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
+    assign imm_f = {instr[31], instr[30:12], instr1[23:12]};
 
     always_comb begin
         (* parallel_case *) unique case (instr[6:0])
@@ -67,6 +70,7 @@ module immgen(
             FBRANCH: imm = imm_b;
             VLW    : imm = imm_i;
             VSW    : imm = imm_i;
+            FLI    : imm = imm_f;
             default: imm = 32'b0;
         endcase
     end

@@ -65,14 +65,6 @@ module exec
             .result(fpuresult),
             .fin(fpu_fin));
     
-    // branch
-    // logic flag;
-    // branch_unit branch_unit(.src0(rdata0),
-    //                         .src1(rdata1),
-    //                         .branchop(inst.branchop),
-    //                         .flag(flag));
-    
-
     mux2 resultmux2(.data0(aluresult_),
                     .data1(fpuresult),
                     .s(inst.aluorfpu),
