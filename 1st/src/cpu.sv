@@ -38,7 +38,11 @@ module cpu(
     input wire [31:0] rdata_cache, 
     output logic write_enable_cache,
     output logic read_enable_cache,
-    input wire miss_cache
+    input wire miss_cache,
+    output logic [127:0] vec_wdata_cache,
+    input wire [127:0] vec_rdata_cache,
+    output logic vec_mode_cache,
+    output logic [3:0] vec_mask_cache
     );   
 
     logic [31:0] pc; // fetch stage stall -> pc <= pc
@@ -304,10 +308,10 @@ module cpu(
                   .write_enable(write_enable_cache),
                   .read_enable(read_enable_cache),
                   .miss(miss_cache),
-                //   .vec_wdata(),
-                //   .vec_rdata(),
-                //   .vec_mode(),
-                //   .vec_mask(),
+                  .vec_wdata(vec_wdata_cache),
+                  .vec_rdata(vec_rdata_cache),
+                  .vec_mode(vec_mode_cache),
+                  .vec_mask(vec_mask_cache),
                   .inst(inst_EM),
                   .aluresult(aluresult_EM),
                   .result(result_EM),

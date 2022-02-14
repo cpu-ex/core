@@ -33,7 +33,11 @@ module top_wrap #(CLK_PER_HALF_BIT = 86)(
     input wire [31:0] rdata_cache, 
     output wire write_enable_cache,
     output wire read_enable_cache,
-    input wire miss_cache
+    input wire miss_cache,
+    output wire [127:0] vec_wdata_cache,
+    input wire [127:0] vec_rdata_cache,
+    output wire vec_mode_cache,
+    output wire [3:0] vec_mask_cache
     );
 
     top #(CLK_PER_HALF_BIT) top(.clk(clk),
@@ -46,7 +50,11 @@ module top_wrap #(CLK_PER_HALF_BIT = 86)(
                                 .rdata_cache(rdata_cache),
                                 .write_enable_cache(write_enable_cache),
                                 .read_enable_cache(read_enable_cache),
-                                .miss_cache(miss_cache));
+                                .miss_cache(miss_cache),
+                                .vec_wdata_cache(vec_wdata_cache),
+                                .vec_rdata_cache(vec_rdata_cache),
+                                .vec_mode_cache(vec_mode_cache),
+                                .vec_mask_cache(vec_mask_cache));
                                 
 endmodule
 `default_nettype wire

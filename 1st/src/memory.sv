@@ -26,10 +26,10 @@ module memory
     output logic write_enable,
     output logic read_enable,
     input wire miss,
-    // output logic [127:0] vec_wdata,
-    // input logic [127:0] vec_rdata,
-    // output logic vec_mode,
-    // output logic [3:0] vec_mask,
+    output logic [127:0] vec_wdata,
+    input wire [127:0] vec_rdata,
+    output logic vec_mode,
+    output logic [3:0] vec_mask,
 
     input Inst inst,
     input wire [31:0] aluresult,
@@ -86,15 +86,15 @@ module memory
     assign memrdata_ = rdata;
     
     /* --- vec --- */
-    // assign vec_wdata = miss ? vec_data_EM_reg:
-    //                    vec_data; 
-    // assign vec_mode = miss ? inst_EM_reg.vecmode:
-    //                   inst.vecmode;
-    // assign vec_mask = miss ? inst_EM_reg.vec_mask:
-    //                   inst.vec_mask;
-    // assign vec_memrdata = vec_rdata;
-    localparam _vecrdata = 128'haaaaaaaa_aaaaaaaa_aaaaaaaa_aaaaaaaa;
-    assign vec_memrdata = _vecrdata;
+    assign vec_wdata = miss ? vec_data_EM_reg:
+                       vec_data; 
+    assign vec_mode = miss ? inst_EM_reg.vecmode:
+                      inst.vecmode;
+    assign vec_mask = miss ? inst_EM_reg.vecmask:
+                      inst.vecmask;
+    assign vec_memrdata = vec_rdata;
+    // localparam _vecrdata = 128'haaaaaaaa_aaaaaaaa_aaaaaaaa_aaaaaaaa;
+    // assign vec_memrdata = _vecrdata;
                           
     // 1 idle -> lw or sw
     // 1 idle -> idle

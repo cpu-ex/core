@@ -34,7 +34,11 @@ module top #(CLK_PER_HALF_BIT = 86)(
     input wire [31:0] rdata_cache, 
     output logic write_enable_cache,
     output logic read_enable_cache,
-    input wire miss_cache
+    input wire miss_cache,
+    output logic [127:0] vec_wdata_cache,
+    input wire [127:0] vec_rdata_cache,
+    output logic vec_mode_cache,
+    output logic [3:0] vec_mask_cache
     );
 
     logic full, empty, rd_en, wr_en;
@@ -53,7 +57,11 @@ module top #(CLK_PER_HALF_BIT = 86)(
             .rdata_cache(rdata_cache),
             .write_enable_cache(write_enable_cache),
             .read_enable_cache(read_enable_cache),
-            .miss_cache(miss_cache));
+            .miss_cache(miss_cache),
+            .vec_wdata_cache(vec_wdata_cache),
+            .vec_rdata_cache(vec_rdata_cache),
+            .vec_mode_cache(vec_mode_cache),
+            .vec_mask_cache(vec_mask_cache));
 
     uart_tx_unit #(CLK_PER_HALF_BIT)tx_unit(.clk(clk),
                                             .clk_uart(clk_uart),
