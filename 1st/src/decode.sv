@@ -11,44 +11,22 @@ module decode
 
     output logic [5:0] rs0,
     output logic [5:0] rs1,
-    output logic [5:0] reg2,
-    output logic [5:0] reg3,
-    output logic [5:0] reg4,
-    output logic [5:0] reg5,
-    output logic i_vsw,
     input wire [31:0] rs0data,
     input wire [31:0] rs1data,
-    input wire [31:0] reg2data,
-    input wire [31:0] reg3data,
-    input wire [31:0] reg4data,
-    input wire [31:0] reg5data,
     input wire [31:0] regwdataE,
     input wire [31:0] regwdataM,
-    input wire [31:0] regwdataM2,
-    input wire [31:0] regwdataM3,
-    input wire [31:0] regwdataM4,
-    input wire [31:0] regwdataM5,
-    input wire [2:0] forward0,
-    input wire [2:0] forward1,
-    input wire [2:0] forward2,
-    input wire [2:0] forward3,
-    input wire [2:0] forward4,
-    input wire [2:0] forward5,
+    input wire [1:0] forward0,
+    input wire [1:0] forward1,
 
     input wire [31:0] pc,
     input wire [31:0] instr,
     input wire [31:0] instr1,
     input wire prediction,
-    input wire [7:0] pc_xor_global_history,
+    input wire [8:0] pc_xor_global_history,
 
     output Inst inst,
     output logic [31:0] rdata0,
-    output logic [31:0] rdata1,
-    output logic [31:0] rdata2,
-    output logic [31:0] rdata3,
-    output logic [31:0] rdata4,
-    output logic [31:0] rdata5,
-    output logic flag);
+    output logic [31:0] rdata1);
      
     logic rs0flag, rs1flag, rdflag;
     wire [6:0] opcode = instr[6:0];
@@ -57,10 +35,6 @@ module decode
     wire [5:0] rs0_ = {rs0flag, instr[19:15]};
     wire [5:0] rs1_ = {rs1flag, instr[24:20]};
     wire [5:0] rd_ = {rdflag, instr[11:7]};
-    assign reg2 = instr1[31:26];
-    assign reg3 = instr1[25:20];
-    assign reg4 = instr1[19:14];
-    assign reg5 = instr1[13:8];
 
     // controler
     single_cycle_control controler(.opcode(opcode),
@@ -77,13 +51,10 @@ module decode
                                    .src0(inst.src0),
                                    .src1(inst.src1),
                                    .regwrite(inst.regwrite),
-                                   .vec_regwrite(inst.vec_regwrite),
                                    .aluorfpu(inst.aluorfpu),
                                    .rs0flag(rs0flag),
                                    .rs1flag(rs1flag),
-                                   .rdflag(rdflag),
-                                   .vecmode(inst.vecmode),
-                                   .i_vsw(i_vsw));
+                                   .rdflag(rdflag));
 
     // imm
     immgen immgen(.instr(instr),
@@ -98,90 +69,16 @@ module decode
     assign inst.pc = pc;
     assign inst.prediction = prediction;
     assign inst.pc_xor_global_history = pc_xor_global_history;
-    assign inst.reg2 = reg2;
-    assign inst.reg3 = reg3;
-    assign inst.reg4 = reg4;
-    assign inst.reg5 = reg5;
-    assign inst.vecmask = {instr[7],instr[8],instr[9],instr[10]}; // 5432
+        
+    // forwarding
+    assign rdata0 = forward0 == 2'b00 ? rs0data:
+                    forward0 == 2'b01 ? regwdataE:
+                    regwdataM;
 
     // forwarding
-    always_comb begin
-        (* parallel_case *) unique case (forward0)
-        3'b000: rdata0 = rs0data;
-        3'b001: rdata0 = regwdataE;
-        3'b010: rdata0 = regwdataM;
-        3'b011: rdata0 = regwdataM2;
-        3'b100: rdata0 = regwdataM3;
-        3'b101: rdata0 = regwdataM4;
-        3'b110: rdata0 = regwdataM5;
-        endcase
-    end
-
-    always_comb begin
-        (* parallel_case *) unique case (forward1)
-        3'b000: rdata1 = rs1data;
-        3'b001: rdata1 = regwdataE;
-        3'b010: rdata1 = regwdataM;
-        3'b011: rdata1 = regwdataM2;
-        3'b100: rdata1 = regwdataM3;
-        3'b101: rdata1 = regwdataM4;
-        3'b110: rdata1 = regwdataM5;
-        endcase
-    end
-
-    always_comb begin
-        (* parallel_case *) unique case (forward2)
-        3'b000: rdata2 = reg2data;
-        3'b001: rdata2 = regwdataE;
-        3'b010: rdata2 = regwdataM;
-        3'b011: rdata2 = regwdataM2;
-        3'b100: rdata2 = regwdataM3;
-        3'b101: rdata2 = regwdataM4;
-        3'b110: rdata2 = regwdataM5;
-        endcase
-    end
-
-    always_comb begin
-        (* parallel_case *) unique case (forward3)
-        3'b000: rdata3 = reg3data;
-        3'b001: rdata3 = regwdataE;
-        3'b010: rdata3 = regwdataM;
-        3'b011: rdata3 = regwdataM2;
-        3'b100: rdata3 = regwdataM3;
-        3'b101: rdata3 = regwdataM4;
-        3'b110: rdata3 = regwdataM5;
-        endcase
-    end
-
-    always_comb begin
-        (* parallel_case *) unique case (forward4)
-        3'b000: rdata4 = reg4data;
-        3'b001: rdata4 = regwdataE;
-        3'b010: rdata4 = regwdataM;
-        3'b011: rdata4 = regwdataM2;
-        3'b100: rdata4 = regwdataM3;
-        3'b101: rdata4 = regwdataM4;
-        3'b110: rdata4 = regwdataM5;
-        endcase
-    end
-
-    always_comb begin
-        (* parallel_case *) unique case (forward5)
-        3'b000: rdata5 = reg5data;
-        3'b001: rdata5 = regwdataE;
-        3'b010: rdata5 = regwdataM;
-        3'b011: rdata5 = regwdataM2;
-        3'b100: rdata5 = regwdataM3;
-        3'b101: rdata5 = regwdataM4;
-        3'b110: rdata5 = regwdataM5;
-        endcase
-    end
-    
-    // branch
-    branch_unit branch_unit(.src0(rdata0),
-                            .src1(rdata1),
-                            .branchop(inst.branchop),
-                            .flag(flag));
+    assign rdata1 = forward1 == 2'b00 ? rs1data:
+                    forward1 == 2'b01 ? regwdataE:
+                    regwdataM;
 
     assign fin = 1'b1;
 

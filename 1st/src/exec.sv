@@ -18,21 +18,15 @@ module exec
 
     input wire [31:0] rdata0,
     input wire [31:0] rdata1,
-    input wire [31:0] rdata2,
-    input wire [31:0] rdata3,
-    input wire [31:0] rdata4,
-    input wire [31:0] rdata5,
     input Inst inst,
-    input wire flag,
 
     output logic [31:0] pcnext,
     output Inst inst_out,
     output logic [31:0] aluresult,
     output logic [31:0] result,
-    output logic [31:0] rdata1_out,
-    output logic [127:0] vec_data);
+    output logic [31:0] rdata1_out);
 
-    logic [31:0] src0, src1;
+    (* max_fanout = 50 *) logic [31:0] src0, src1;
     mux4 src0mux4(.data0(rdata0),
                   .data1(32'b0),
                   .data2(inst.pc),
@@ -65,6 +59,14 @@ module exec
             .result(fpuresult),
             .fin(fpu_fin));
     
+    // branch
+    logic flag;
+    branch_unit branch_unit(.src0(rdata0),
+                            .src1(rdata1),
+                            .branchop(inst.branchop),
+                            .flag(flag));
+    
+
     mux2 resultmux2(.data0(aluresult_),
                     .data1(fpuresult),
                     .s(inst.aluorfpu),
@@ -90,7 +92,6 @@ module exec
     assign update = inst.branchjump == 2'b01; // branch
 
     assign aluresult = rdata0 + inst.imm; // memaddr
-    assign vec_data = {rdata5, rdata4, rdata3, rdata2}; // 5432
     assign inst_out = inst;
     assign rdata1_out = rdata1;
     assign fin = fpu_fin;

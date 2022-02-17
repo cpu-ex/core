@@ -14,7 +14,7 @@ module fetch
     output wire [31:0] pc_predicated,
     // branch prediction
     input wire prediction,
-    input wire [7:0] pc_xor_global_history,
+    input wire [8:0] pc_xor_global_history,
 
     input wire [31:0] pc,
     input wire [31:0] pcnext,
@@ -22,7 +22,7 @@ module fetch
     output logic [31:0] pc_out,
     output logic [31:0] instr,
     output logic [31:0] instr1,
-    output logic [7:0] pc_xor_global_history_out);
+    output logic [8:0] pc_xor_global_history_out);
 
     localparam JAL     = 7'b1101111; // jal 
     localparam BRANCH  = 7'b1100011; // beq, bne, blt, bge
@@ -38,7 +38,7 @@ module fetch
         end
     end
 
-    // simple decode to avoid jal stall, branch prediction, 64bit instruction
+    // simple decode to avoid jal stall, branch prediction
     wire i_jal    = (imemrdata[6:0] == JAL);
     wire i_branch = (imemrdata[6:0] == BRANCH || imemrdata[6:0] == FBRANCH);
     wire i_64     = (imemrdata[0] == 1'b0);

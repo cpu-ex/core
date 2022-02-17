@@ -37,13 +37,10 @@ module single_cycle_control(
     output logic [1:0] src0,
     output logic [1:0] src1,
     output logic regwrite,
-    output logic vec_regwrite,
     output logic aluorfpu,
     output logic rs0flag,
     output logic rs1flag,
-    output logic rdflag,
-    output logic vecmode,
-    output logic i_vsw
+    output logic rdflag
     //...
     );
     
@@ -112,9 +109,7 @@ module single_cycle_control(
     // original extension
     // opcode
     localparam FBRANCH = 7'b1100001; // bfeq, bfle, bflt
-    localparam VLW     = 7'b1000000; // vlw
-    localparam VSW     = 7'b1000010; // vsw
-    localparam FLI     = 7'b1000100; // fli
+    localparam FLI     = 7'b1000100;
 
     // funct3
     localparam BFEQ = 3'b000;
@@ -134,7 +129,6 @@ module single_cycle_control(
           i_fcvtws, i_fcvtsw,
           i_fmvwx, i_fmvxw,
           i_bfeq, i_bfle, i_bflt,
-          i_vlw,// i_vsw
           i_fli;
 
     assign i_lui = (opcode == LUI);
@@ -194,25 +188,22 @@ module single_cycle_control(
     assign i_bfle = (opcode == FBRANCH && funct3 == BFLE);
     assign i_bflt = (opcode == FBRANCH && funct3 == BFLT);
 
-    assign i_vlw = (opcode == VLW);
-    assign i_vsw = (opcode == VSW);
-
     assign i_fli = (opcode == FLI);
 
     // memtoreg
     // 1'b0 -> result (alu or fpu)
     // 1'b1 -> memrdata
-    assign memtoreg = (i_lw || i_fload); // || i_vlw ?
+    assign memtoreg = (i_lw || i_fload);
 
     // memwrite
     // 1'b0 -> don't write
     // 1'b1 -> write
-    assign memwrite = (i_sw || i_fstore || i_vsw);
+    assign memwrite = (i_sw || i_fstore);
 
     // memread
     // 1'b0 -> don't read
     // 1'b1 -> read
-    assign memread = (i_lw || i_fload || i_vlw);
+    assign memread = (i_lw || i_fload);
 
     // imemwrite
     // 1'b0 -> don't write
@@ -220,7 +211,7 @@ module single_cycle_control(
     assign imemwrite = i_swi;
 
     // branchjump
-    // 2'b00 -> pc += 4,8 ?
+    // 2'b00 -> pc += 4
     // 2'b01 -> branch
     // 2'b10 -> pc += (signed)imm (JAL)
     // 2'b11 -> pc = rdata0 + (signed)imm (JALR)
@@ -297,7 +288,7 @@ module single_cycle_control(
 
     // src0
     // 2'b00 -> rdata0(from register file)
-    // 2'b01 -> 0 (LUI,FLI)
+    // 2'b01 -> 0 (LUI)
     // 2'b10 -> pc
     assign src0 = (i_lui || i_fli) ? 2'b01:
                   (i_auipc || i_jal || i_jalr) ? 2'b10:
@@ -309,19 +300,14 @@ module single_cycle_control(
     // 2'b10 -> imm
     // 2'b11 -> 0
     assign src1 = (i_jal || i_jalr) ? 2'b01:
-                  (i_auipc || i_lui || i_lw || i_sw || i_swi || opcode == CALCI || i_fload || i_fstore || i_vlw || i_vsw || i_fli) ? 2'b10:
+                  (i_auipc || i_lui || i_lw || i_sw || i_swi || opcode == CALCI || i_fload || i_fstore || i_fli) ? 2'b10:
                   (i_fmvwx || i_fmvxw ) ? 2'b11:
                   2'b00;
 
-    // regwrite (rd)
+    // regwrite
     // 1'b0 -> don't write
     // 1'b1 -> write
-    assign regwrite = ~(opcode == BRANCH || opcode == FBRANCH || i_sw || i_swi || i_fstore || i_vsw || i_vlw);
-
-    // veg_regwrite (rd2, rd3, rd4, rd5)
-    // 1'b0 -> don't write 
-    // 1'b1 -> write 
-    assign vec_regwrite = i_vlw;
+    assign regwrite = ~(opcode == BRANCH || opcode == FBRANCH || i_sw || i_swi || i_fstore);
 
     // aluorfpu
     // 1'b0 -> aluresult 
@@ -342,8 +328,6 @@ module single_cycle_control(
     // 1'b0 -> integer register
     // 1'b1 -> floating point register
     assign rdflag = ((opcode == F) && ~i_fcvtws && ~i_fmvxw && ~i_feq && ~i_fle && ~i_flt) || i_fload || i_fli;
-
-    assign vecmode = (i_vlw || i_vsw);
 
 endmodule
 `default_nettype wire

@@ -46,4 +46,36 @@ module mux4
     end
 endmodule
 
+module flop
+    #(parameter WIDTH = 32) 
+    (input wire clk,
+     input wire rstn,
+     input wire [WIDTH-1:0] data,
+     output reg [WIDTH-1:0] q);
+
+    always_ff @(posedge clk) begin
+        if (~rstn) q <= 0;
+        else       q <= data;
+    end
+    
+endmodule
+
+
+module flope
+    #(parameter WIDTH = 32) 
+    (input wire clk,
+     input wire rstn,
+     input wire en,
+     input wire [WIDTH-1:0] data,
+     output reg [WIDTH-1:0] q);
+
+    always_ff @(posedge clk) begin
+        if (~rstn) q <= 0;
+        else begin
+            if (en) q <= data;
+        end
+    end
+    
+endmodule
+
 `default_nettype wire

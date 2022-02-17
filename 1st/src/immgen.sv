@@ -41,8 +41,6 @@ module immgen(
     localparam FSTORE  = 7'b0100111; 
     localparam F       = 7'b1010011; 
     localparam FBRANCH = 7'b1100001;
-    localparam VLW     = 7'b1000000;
-    localparam VSW     = 7'b1000010;
     localparam FLI     = 7'b1000100;
 
     wire [31:0] imm_i, imm_s, imm_b, imm_u, imm_j, imm_f;
@@ -68,8 +66,6 @@ module immgen(
             FSTORE : imm = imm_s;
             F      : imm = 32'b0;
             FBRANCH: imm = imm_b;
-            VLW    : imm = imm_i;
-            VSW    : imm = imm_i;
             FLI    : imm = imm_f;
             default: imm = 32'b0;
         endcase

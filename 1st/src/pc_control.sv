@@ -34,14 +34,20 @@ module pc_control (
     output logic [31:0] pcnext
     );
 
-    always_comb begin
-        (* parallel_case *) unique case (branchjump)
-            2'b00: pcnext = pc4;
-            2'b01: pcnext = (flag == 1'b1 ? pcimm : pc4);
-            2'b10: pcnext = pcimm;
-            2'b11: pcnext = pcjalr;
-        endcase
-    end
+    assign pcnext = branchjump == 2'b00 ? pc4 :
+                    branchjump == 2'b10 ? pcimm :
+                    branchjump == 2'b11 ? pcjalr :
+                    flag == 1'b1 ? pcimm : 
+                    pc4; // (flag == 1'b0)
+
+    // always_comb begin
+    //     unique case (branchjump)
+    //         2'b00: pcnext = pc4;
+    //         2'b01: pcnext = (flag == 1'b1 ? pcimm : pc4);
+    //         2'b10: pcnext = pcimm;
+    //         2'b11: pcnext = pcjalr;
+    //     endcase
+    // end
 
 endmodule
 `default_nettype wire

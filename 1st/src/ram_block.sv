@@ -20,6 +20,26 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+module ram_block_data(
+    input wire clk,
+    input wire we,
+    input wire [15:0] addr,
+    input wire [31:0] di,
+    output reg [31:0] dout 
+    );
+
+    (* ram_style = "block" *) reg [31:0] ram [((2 ** 16) - 1):0];
+
+    always_ff @(posedge clk) begin
+        if (we) begin
+            ram[addr] <= di;
+        end else begin
+            dout <= ram[addr];
+        end
+    end
+
+endmodule
+
 module ram_block_inst
   #(parameter ADDR_WIDTH = 15,
     parameter DATA_WIDTH = 32)
@@ -76,7 +96,7 @@ module ram_block_2p
     output logic [DATA_WIDTH-1:0] read_data1,
     input wire [DATA_WIDTH-1:0] write_data1);
 
-    (* ram_style = "block" *) reg [DATA_WIDTH-1:0] ram [(1 << ADDR_WIDTH) - 1:0];
+    (* ram_style = "block" *) reg [1:0] ram [(1 << ADDR_WIDTH) - 1:0];
 
     initial begin
         for (int i = 0;i < (1 << ADDR_WIDTH); i += 1) begin

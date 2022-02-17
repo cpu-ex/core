@@ -52,7 +52,7 @@ endmodule
 
 
 module bimodal_predictor
-  #(parameter INDEX_WIDTH = 8) // pht size = 2 ^ INDEX_WIDTH
+  #(parameter INDEX_WIDTH = 9) // pht size = 2 ^ INDEX_WIDTH
    (input wire clk,
     input wire rstn,
     // predict
@@ -114,7 +114,7 @@ module bimodal_predictor
 endmodule
 
 module GShare_predictor
-  #(parameter INDEX_WIDTH = 8) // pht size = 2 ^ INDEX_WIDTH
+  #(parameter INDEX_WIDTH = 9) // pht size = 2 ^ INDEX_WIDTH
    (input wire clk,
     input wire rstn,
     // predict

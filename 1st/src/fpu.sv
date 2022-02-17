@@ -41,7 +41,7 @@ module fpu(
 
     fadd_3 fadd(.clk(clk), .rstn(rstn), .x1(src0), .x2({sign,src1[30:0]}), .y(fadd_res), .ovf(ovf0));
     fmul_2 fmul(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fmul_res));
-    fdiv_11 fdiv(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fdiv_res));
+    fdiv_10 fdiv(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fdiv_res));
     fsqrt_7 fsqrt(.clk(clk), .rstn(rstn), .x(src0), .y(fsqrt_res));
     fsgnj fsgnj(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnj_res));
     fsgnjn fsgnjn(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fsgnjn_res));
@@ -49,7 +49,7 @@ module fpu(
     feq feq(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(feq_res));
     fle fle(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(fle_res));
     flt flt(.clk(clk), .rstn(rstn), .x1(src0), .x2(src1), .y(flt_res));
-    fcvtsw_2 fcvtsw(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtsw_res));
+    fcvtsw_1 fcvtsw(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtsw_res));
     fcvtws_1 fcvtws(.clk(clk), .rstn(rstn), .x(src0), .y(fcvtws_res));
 
     logic [3:0] state;
@@ -92,9 +92,9 @@ module fpu(
     assign fin = (fpuop == 4'b0000) ? (state == 4'd3 ? 1'b1 : 1'b0):
                  (fpuop == 4'b0001) ? (state == 4'd3 ? 1'b1 : 1'b0):
                  (fpuop == 4'b0010) ? (state == 4'd2 ? 1'b1 : 1'b0):
-                 (fpuop == 4'b0011) ? (state == 4'd11 ? 1'b1 : 1'b0):
+                 (fpuop == 4'b0011) ? (state == 4'd10 ? 1'b1 : 1'b0):
                  (fpuop == 4'b0100) ? (state == 4'd7 ? 1'b1 : 1'b0):
-                 (fpuop == 4'b1100) ? (state == 4'd2 ? 1'b1 : 1'b0):
+                 (fpuop == 4'b1100) ? (state == 4'd1 ? 1'b1 : 1'b0):
                  (fpuop == 4'b1011) ? (state == 4'd1 ? 1'b1 : 1'b0):
                  1'b1;
     // fin == 1'b1 <-> result is valid
