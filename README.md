@@ -1,11 +1,14 @@
 # core
-vivadoのimplementation strategyはPerformance_NetDelay_high
++ vivado の implementation strategy は Flow_RunPostRoutePhysOpt
++ main は vlw, vsw ありのコア、without-vlw branch は vlw, vsw なしのコア
++ vlw ありは最終的に動かなかったため、記録は without-vlw のもの
++ vlw なしのメモリは cpu-ex/memory の 9c38c89bdffe67db975bf28afe93cfe74eabfb3a を使用。
 
 ## 1st
-+ 5段パイプラインコア、キャッシュあり(core 100Mhz, uart 100Mhz) 
-+ 実行時間 16x16 2.8s 128x128 47s
++ 5段パイプラインコア、キャッシュあり(core 100Mhz, uart 100Mhz)
 + GShare predictor
-+ vlw
++ 実行時間 128x128 43.873s 512x512 494.393s
++ fliが64bit命令
 
 ## 仕様
 ### Memory
@@ -15,9 +18,8 @@ Data Memory(2^27 byte)
 + 0x0000000からstatic data,heap,stack,MMIOが割り当てられる。
 
 MMIO
-+ 0x3FFFFFC: uart_addr
++ 0x0: uart_addr
 
-uart_in_valid, uart_out_validは用意せず、一つのuart_addrのみ使う。
 uart_addrにlwしたら、送信、uart_addrにswしたら受信。
 送信や受信ができない場合はstallする。
 
@@ -33,11 +35,11 @@ RISC-VのRV32IFの一部と命令メモリに書き込むための命令swi(stor
 + fadd, fsub +3 
 + fmul +2
 + fsqrt +7
-+ fdiv +11
-+ fcvtsw +2
++ fdiv +10
++ fcvtsw +1
 + fcvtws +1
 + jalr +2
-+ branchの予測はPHTのサイズが256bitのGShare predictor, 予測が失敗すると+2
++ branchの予測はPHTのサイズが512bitのGShare predictor, 予測が失敗すると+2
 + lw hit時 +1
 + sw hit時 +1
 + baudrate 2304000
@@ -55,41 +57,40 @@ main:
 loop: # wait fifo reset
   addi t0, t0, -1
   blt zero, t0, loop
-  li t2, 0x3FFFFFC # uart addr
 
   addi t0, zero, 0x99
-  sw t0, 0(t2) # uart_tx
+  sw t0, 0(x0) # uart_tx
 # receive program size  
-  lw t1, 0(t2) # uart_rx
+  lw t1, 0(x0) # uart_rx
   slli t1, t1, 8
 
-  lw t0, 0(t2) # uart_rx
+  lw t0, 0(x0) # uart_rx
   or t1, t1, t0
   slli t1, t1, 8
 
-  lw t0, 0(t2) # uart_rx
+  lw t0, 0(x0) # uart_rx
   or t1, t1, t0
   slli t1, t1, 8
 
-  lw t0, 0(t2) # uart_rx
+  lw t0, 0(x0) # uart_rx
   or t1, t1, t0
 
 # receive program   
   li a2, 0x100 # program start point
 pload:
 
-  lw a1, 0(t2) # uart_rx
+  lw a1, 0(x0) # uart_rx
   slli a1, a1, 8
 
-  lw a0, 0(t2) # uart_rx
+  lw a0, 0(x0) # uart_rx
   or a1, a1, a0
   slli a1, a1, 8
 
-  lw a0, 0(t2) # uart_rx
+  lw a0, 0(x0) # uart_rx
   or a1, a1, a0
   slli a1, a1, 8
 
-  lw a0, 0(t2) # uart_rx
+  lw a0, 0(x0) # uart_rx
   or a1, a1, a0
 
   swi a1, 0(a2)
@@ -98,7 +99,7 @@ pload:
   blt zero, t1, pload
 
   addi t0, zero, 0xaa
-  sw t0, 0(t2) # uart_tx
+  sw t0, 0(x0) # uart_tx
 
   # jump progarm
   jalr zero, 0x100(zero)
