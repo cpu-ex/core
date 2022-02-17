@@ -1,11 +1,14 @@
 # core
-vivadoのimplementation strategyはPerformance_NetDelay_high
++ vivado の implementation strategy は Performance_NetDelay_high
++ main は vlw, vsw ありのコア、without-vlw branch は vlw, vsw なしのコア
++ vlw ありは最終的に動かなかったため、記録は without-vlw のもの
++ vlw なしのメモリは cpu-ex/memory の 9c38c89bdffe67db975bf28afe93cfe74eabfb3a を使用。
 
 ## 1st
 + 5段パイプラインコア、キャッシュあり(core 100Mhz, uart 100Mhz) 
-+ 実行時間 16x16 2.8s 128x128 47s
++ 実行時間 128x128 43.873s 512x512 494.393s
 + GShare predictor
-+ vlw
++ fli, vlwなどの64bit の命令あり
 
 ## 仕様
 ### Memory
@@ -15,9 +18,8 @@ Data Memory(2^27 byte)
 + 0x0000000からstatic data,heap,stack,MMIOが割り当てられる。
 
 MMIO
-+ 0x3FFFFFC: uart_addr
++ uart_addr : 0x3FFFFFC 
 
-uart_in_valid, uart_out_validは用意せず、一つのuart_addrのみ使う。
 uart_addrにlwしたら、送信、uart_addrにswしたら受信。
 送信や受信ができない場合はstallする。
 
