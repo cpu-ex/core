@@ -15,7 +15,7 @@
 + Big endian
 
 Data Memory(2^27 byte)
-+ 0x0000000からstatic data,heap,stack,MMIOが割り当てられる。
++ 0x0000004からstatic data,heap,stack,MMIOが割り当てられる。
 
 MMIO
 + 0x0: uart_addr
